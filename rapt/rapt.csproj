@@ -174,7 +174,7 @@
     <TypeScriptCompile Include="src\world\door.ts" />
     <TypeScriptCompile Include="src\world\edge.ts" />
     <TypeScriptCompile Include="src\world\gamestate.ts" />
-    <Content Include="src\world\levelloader.js" />
+    <TypeScriptCompile Include="src\world\levelloader.ts" />
     <TypeScriptCompile Include="src\world\world.ts" />
     <Content Include="style.css" />
     <Content Include="Web.config" />

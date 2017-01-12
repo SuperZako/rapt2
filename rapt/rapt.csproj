@@ -162,7 +162,7 @@
     <Content Include="src\game\screen.js" />
     <Content Include="src\util\class.js" />
     <Content Include="src\util\cog.js" />
-    <Content Include="src\util\cookie.js" />
+    <TypeScriptCompile Include="src\util\cookie.ts" />
     <TypeScriptCompile Include="src\util\keyCode-array.ts" />
     <Content Include="src\util\keyframe.js" />
     <Content Include="src\util\localstorage.js" />

@@ -5,7 +5,7 @@
     "outFile": "built/out.js",
 
     "noImplicitAny": false,
-    "noEmitOnError": true,
+    "noEmitOnError": false,
     "removeComments": false,
     "sourceMap": true,
 

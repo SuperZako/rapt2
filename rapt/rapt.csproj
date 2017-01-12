@@ -164,7 +164,7 @@
     <TypeScriptCompile Include="src\util\cog.ts" />
     <TypeScriptCompile Include="src\util\cookie.ts" />
     <TypeScriptCompile Include="src\util\keyCode-array.ts" />
-    <Content Include="src\util\keyframe.js" />
+    <TypeScriptCompile Include="src\util\keyframe.ts" />
     <TypeScriptCompile Include="src\util\localstorage.ts" />
     <TypeScriptCompile Include="src\util\math.ts" />
     <Content Include="src\util\sprite.js" />

@@ -115,7 +115,7 @@
     <Content Include="src\collisions\contact.js" />
     <Content Include="src\collisions\edgequad.js" />
     <Content Include="src\collisions\polygon.js" />
-    <Content Include="src\collisions\segment.js" />
+    <TypeScriptCompile Include="src\collisions\segment.ts" />
     <TypeScriptCompile Include="src\collisions\shape.ts" />
     <Content Include="src\entities\bomb.js" />
     <Content Include="src\entities\bomber.js" />

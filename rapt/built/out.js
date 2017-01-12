@@ -1,4 +1,24 @@
-﻿// enum ShapeType
+﻿// class Segment
+var Segment = (function () {
+    function Segment(start, end) {
+        this.start = start;
+        this.end = end;
+        // this.start = start;
+        // this.end = end;
+        this.normal = end.sub(start).flip().unit();
+    }
+    Segment.prototype.offsetBy = function (offset) {
+        return new Segment(this.start.add(offset), this.end.add(offset));
+    };
+    Segment.prototype.draw = function (c) {
+        c.beginPath();
+        c.moveTo(this.start.x, this.start.y);
+        c.lineTo(this.end.x, this.end.y);
+        c.stroke();
+    };
+    return Segment;
+}());
+// enum ShapeType
 var SHAPE_CIRCLE = 0;
 var SHAPE_AABB = 1;
 var SHAPE_POLYGON = 2;

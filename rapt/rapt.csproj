@@ -154,7 +154,7 @@
     <Content Include="src\entities\wallcrawler.js" />
     <Content Include="src\entities\wheeligator.js" />
     <Content Include="src\game\backgroundcache.js" />
-    <Content Include="src\game\camera.js" />
+    <TypeScriptCompile Include="src\game\camera.ts" />
     <Content Include="src\game\game.js" />
     <TypeScriptCompile Include="src\game\keys.ts" />
     <Content Include="src\game\main.js" />

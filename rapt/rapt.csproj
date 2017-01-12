@@ -172,7 +172,7 @@
     <TypeScriptCompile Include="src\util\vector.ts" />
     <TypeScriptCompile Include="src\world\cell.ts" />
     <Content Include="src\world\door.js" />
-    <Content Include="src\world\edge.js" />
+    <TypeScriptCompile Include="src\world\edge.ts" />
     <Content Include="src\world\gamestate.js" />
     <Content Include="src\world\levelloader.js" />
     <Content Include="src\world\world.js" />

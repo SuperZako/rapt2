@@ -110,9 +110,9 @@
   <ItemGroup>
     <Content Include="index.html" />
     <TypeScriptCompile Include="src\collisions\aabb.ts" />
-    <Content Include="src\collisions\circle.js" />
+    <TypeScriptCompile Include="src\collisions\circle.ts" />
     <Content Include="src\collisions\collisiondetection.js" />
-    <Content Include="src\collisions\contact.js" />
+    <TypeScriptCompile Include="src\collisions\contact.ts" />
     <Content Include="src\collisions\edgequad.js" />
     <TypeScriptCompile Include="src\collisions\polygon.ts" />
     <TypeScriptCompile Include="src\collisions\segment.ts" />

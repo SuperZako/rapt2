@@ -109,12 +109,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
-    <Content Include="src\collisions\aabb.js" />
+    <TypeScriptCompile Include="src\collisions\aabb.ts" />
     <Content Include="src\collisions\circle.js" />
     <Content Include="src\collisions\collisiondetection.js" />
     <Content Include="src\collisions\contact.js" />
     <Content Include="src\collisions\edgequad.js" />
-    <Content Include="src\collisions\polygon.js" />
+    <TypeScriptCompile Include="src\collisions\polygon.ts" />
     <TypeScriptCompile Include="src\collisions\segment.ts" />
     <TypeScriptCompile Include="src\collisions\shape.ts" />
     <Content Include="src\entities\bomb.js" />

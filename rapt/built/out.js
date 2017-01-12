@@ -1,4 +1,143 @@
-﻿// class Segment
+﻿// class AABB extends Shape
+var AABB = (function () {
+    function AABB(lowerLeft, upperRight) {
+        this.lowerLeft = new Vector(Math.min(lowerLeft.x, upperRight.x), Math.min(lowerLeft.y, upperRight.y));
+        this.size = new Vector(Math.max(lowerLeft.x, upperRight.x), Math.max(lowerLeft.y, upperRight.y)).sub(this.lowerLeft);
+    }
+    AABB.makeAABB = function (center, width, height) {
+        var halfSize = new Vector(width * 0.5, height * 0.5);
+        var lowerLeft = center.sub(halfSize);
+        var upperRight = center.add(halfSize);
+        return new AABB(lowerLeft, upperRight);
+    };
+    AABB.prototype.getTop = function () { return this.lowerLeft.y + this.size.y; };
+    ;
+    AABB.prototype.getLeft = function () { return this.lowerLeft.x; };
+    ;
+    AABB.prototype.getRight = function () { return this.lowerLeft.x + this.size.x; };
+    ;
+    AABB.prototype.getBottom = function () { return this.lowerLeft.y; };
+    ;
+    AABB.prototype.getWidth = function () { return this.size.x; };
+    ;
+    AABB.prototype.getHeight = function () { return this.size.y; };
+    ;
+    AABB.prototype.copy = function () {
+        return new AABB(this.lowerLeft, this.lowerLeft.add(this.size));
+    };
+    AABB.prototype.getPolygon = function () {
+        var center = this.getCenter();
+        var halfSize = this.size.div(2);
+        return new Polygon(center, new Vector(+halfSize.x, +halfSize.y), new Vector(-halfSize.x, +halfSize.y), new Vector(-halfSize.x, -halfSize.y), new Vector(+halfSize.x, -halfSize.y));
+    };
+    AABB.prototype.getType = function () {
+        return SHAPE_AABB;
+    };
+    ;
+    AABB.prototype.getAabb = function () {
+        return this;
+    };
+    AABB.prototype.moveBy = function (delta) {
+        this.lowerLeft = this.lowerLeft.add(delta);
+    };
+    AABB.prototype.moveTo = function (destination) {
+        this.lowerLeft = destination.sub(this.size.div(2));
+    };
+    AABB.prototype.getCenter = function () {
+        return this.lowerLeft.add(this.size.div(2));
+    };
+    AABB.prototype.expand = function (margin) {
+        var marginVector = new Vector(margin, margin);
+        return new AABB(this.lowerLeft.sub(marginVector), this.lowerLeft.add(this.size).add(marginVector));
+    };
+    AABB.prototype.union = function (aabb) {
+        return new AABB(this.lowerLeft.minComponents(aabb.lowerLeft), this.lowerLeft.add(this.size).maxComponents(aabb.lowerLeft.add(aabb.size)));
+    };
+    AABB.prototype.include = function (point) {
+        return new AABB(this.lowerLeft.minComponents(point), this.lowerLeft.add(this.size).maxComponents(point));
+    };
+    AABB.prototype.offsetBy = function (offset) {
+        return new AABB(this.lowerLeft.add(offset), this.lowerLeft.add(this.size).add(offset));
+    };
+    AABB.prototype.draw = function (c) {
+        c.strokeStyle = 'black';
+        c.strokeRect(this.lowerLeft.x, this.lowerLeft.y, this.size.x, this.size.y);
+    };
+    return AABB;
+}());
+/**
+  *  For the polygon class, the segments and the bounding box are all relative to the center of the polygon.
+  *  That is, when the polygon moves, the center is the only thing that changes.  This is to prevent
+  *  floating-point arithmetic errors that would be caused by maintaining several sets of absolute coordinates.
+  *
+  *  Segment i goes from vertex i to vertex ((i + 1) % vertices.length)
+  *
+  *  When making a new polygon, please declare the vertices in counterclockwise order.	I'm not sure what will
+  *  happen if you don't do that.
+  */
+// class Polygon extends Shape
+var Polygon = (function () {
+    function Polygon() {
+        this.segments = [];
+        // center is the first argument, the next arguments are the vertices relative to the center
+        arguments = Array.prototype.slice.call(arguments);
+        this.center = arguments.shift();
+        this.vertices = arguments;
+        // this.segments = [];
+        for (var i = 0; i < this.vertices.length; i++) {
+            this.segments.push(new Segment(this.vertices[i], this.vertices[(i + 1) % this.vertices.length]));
+        }
+        this.boundingBox = new AABB(this.vertices[0], this.vertices[0]);
+        this.initializeBounds();
+    }
+    Polygon.prototype.copy = function () {
+        var polygon = new Polygon(this.center, this.vertices[0]);
+        polygon.vertices = this.vertices;
+        polygon.segments = this.segments;
+        polygon.initializeBounds();
+        return polygon;
+    };
+    Polygon.prototype.getType = function () {
+        return SHAPE_POLYGON;
+    };
+    Polygon.prototype.moveBy = function (delta) {
+        this.center = this.center.add(delta);
+    };
+    Polygon.prototype.moveTo = function (destination) {
+        this.center = destination;
+    };
+    Polygon.prototype.getVertex = function (i) {
+        return this.vertices[i].add(this.center);
+    };
+    Polygon.prototype.getSegment = function (i) {
+        return this.segments[i].offsetBy(this.center);
+    };
+    Polygon.prototype.getAabb = function () {
+        return this.boundingBox.offsetBy(this.center);
+    };
+    Polygon.prototype.getCenter = function () {
+        return this.center;
+    };
+    // expand the aabb and the bounding circle to contain all vertices
+    Polygon.prototype.initializeBounds = function () {
+        for (var i = 0; i < this.vertices.length; i++) {
+            var vertex = this.vertices[i];
+            // expand the bounding box to include this vertex
+            this.boundingBox = this.boundingBox.include(vertex);
+        }
+    };
+    Polygon.prototype.draw = function (c) {
+        c.strokeStyle = 'black';
+        c.beginPath();
+        for (var i = 0; i < this.vertices.length; i++) {
+            c.lineTo(this.vertices[i].x + this.center.x, this.vertices[i].y + this.center.y);
+        }
+        c.closePath();
+        c.stroke();
+    };
+    return Polygon;
+}());
+// class Segment
 var Segment = (function () {
     function Segment(start, end) {
         this.start = start;

@@ -125,7 +125,7 @@
     <Content Include="src\entities\doommagnet.js" />
     <Content Include="src\entities\doorbell.js" />
     <Content Include="src\entities\enemy.js" />
-    <Content Include="src\entities\entity.js" />
+    <TypeScriptCompile Include="src\entities\entity.ts" />
     <Content Include="src\entities\freefallenemy.js" />
     <Content Include="src\entities\goldencog.js" />
     <Content Include="src\entities\grenade.js" />
@@ -170,7 +170,7 @@
     <TypeScriptCompile Include="src\util\sprite.ts" />
     <TypeScriptCompile Include="src\util\util.ts" />
     <TypeScriptCompile Include="src\util\vector.ts" />
-    <Content Include="src\world\cell.js" />
+    <TypeScriptCompile Include="src\world\cell.ts" />
     <Content Include="src\world\door.js" />
     <Content Include="src\world\edge.js" />
     <Content Include="src\world\gamestate.js" />

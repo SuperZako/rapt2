@@ -1,3 +1,5 @@
+///<reference path="../util/vector.ts" /> 
+
 // class Keyframe
 class Keyframe {
     center;

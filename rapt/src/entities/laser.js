@@ -1,6 +1,3 @@
-#require <class.js>
-#require <freefallenemy.js>
-
 var LASER_RADIUS = .15;
 var LASER_SPEED = 5;
 var LASER_BOUNCES = 0;

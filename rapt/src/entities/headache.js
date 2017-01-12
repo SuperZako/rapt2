@@ -1,5 +1,3 @@
-#require <class.js>
-#require <hoveringenemy.js>
 
 var HEADACHE_RADIUS = .15;
 var HEADACHE_ELASTICITY = 0;

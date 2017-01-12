@@ -1,6 +1,3 @@
-#require <class.js>
-#require <enemy.js>
-
 // enum
 var DOORBELL_OPEN = 0;
 var DOORBELL_CLOSE = 1;

@@ -116,7 +116,7 @@
     <Content Include="src\collisions\edgequad.js" />
     <Content Include="src\collisions\polygon.js" />
     <Content Include="src\collisions\segment.js" />
-    <Content Include="src\collisions\shape.js" />
+    <TypeScriptCompile Include="src\collisions\shape.ts" />
     <Content Include="src\entities\bomb.js" />
     <Content Include="src\entities\bomber.js" />
     <Content Include="src\entities\bouncyrocket.js" />
@@ -158,7 +158,7 @@
     <Content Include="src\game\game.js" />
     <Content Include="src\game\keys.js" />
     <Content Include="src\game\main.js" />
-    <Content Include="src\game\playerstats.js" />
+    <TypeScriptCompile Include="src\game\playerstats.ts" />
     <Content Include="src\game\screen.js" />
     <Content Include="src\util\class.js" />
     <TypeScriptCompile Include="src\util\cog.ts" />

@@ -28,8 +28,8 @@ class Entity {
     getColor() { throw 'Entity.getColor() unimplemented'; }
     getShape() { throw 'Entity.getShape() unimplemented'; }
 
-    getCenter() { return this.getShape().getCenter(); }
-    setCenter(center) { this.getShape().moveTo(center) }
+    // getCenter() { return this.getShape().getCenter(); }
+    // setCenter(center) { this.getShape().moveTo(center) }
 
     isOnFloor() {
         // THIS IS A GLOBAL NOW var edgeQuad = new EdgeQuad();
@@ -37,8 +37,8 @@ class Entity {
         return (edgeQuad.edges[EDGE_FLOOR] != null);
     }
 
-    tick() { throw 'Entity.tick() unimplemented'; }
-    draw() { throw 'Entity.draw() unimplemented'; }
+    tick(seconds) { throw 'Entity.tick() unimplemented'; }
+    draw(c) { throw 'Entity.draw() unimplemented'; }
 
     onDeath() { }
     onRespawn() { }

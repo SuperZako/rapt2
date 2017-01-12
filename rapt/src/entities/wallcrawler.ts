@@ -9,6 +9,7 @@ var PUSH_FACTOR = 0.11;
 class WallCrawler extends WalkingEnemy {
     firstTick = true;
     clockwise = false;
+    bodySprite = new Sprite();
     constructor(center, direction) {
         //WalkingEnemy.prototype.constructor.call(this, ENEMY_CRAWLER, center, WALL_CRAWLER_RADIUS, 0);
         super(ENEMY_CRAWLER, center, WALL_CRAWLER_RADIUS, 0);
@@ -16,7 +17,7 @@ class WallCrawler extends WalkingEnemy {
         this.clockwise = false;
         this.velocity = new Vector(Math.cos(direction), Math.sin(direction));
 
-        this.bodySprite = new Sprite();
+        // this.bodySprite = new Sprite();
         this.bodySprite.drawGeometry = function (c) {
             var space = 0.15;
             c.fillStyle = 'black';

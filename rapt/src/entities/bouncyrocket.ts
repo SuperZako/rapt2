@@ -27,12 +27,13 @@ function drawBouncyRocket(c, isBlue) {
 
 // BouncyRocket.subclasses(Rocket);
 class BouncyRocket extends Rocket {
-    constructor(center, target, heading, launcher) {
+    hitsUntilExplodes = BOUNCY_ROCKET_HEALTH;
+    constructor(center, target, heading, public launcher) {
         // Rocket.prototype.constructor.call(this, center, target, heading, BOUNCY_ROCKET_MAX_ROTATION, ENEMY_BOUNCY_ROCKET);
         super(center, target, heading, BOUNCY_ROCKET_MAX_ROTATION, ENEMY_BOUNCY_ROCKET);
         this.velocity = new Vector(BOUNCY_ROCKET_SPEED * Math.cos(heading), BOUNCY_ROCKET_SPEED * Math.sin(heading));
-        this.launcher = launcher;
-        this.hitsUntilExplodes = BOUNCY_ROCKET_HEALTH;
+        // this.launcher = launcher;
+        // this.hitsUntilExplodes = BOUNCY_ROCKET_HEALTH;
 
         this.sprites[ROCKET_SPRITE_RED].drawGeometry = function (c) {
             drawBouncyRocket(c, false);

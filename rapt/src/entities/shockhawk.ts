@@ -7,13 +7,14 @@ var SHOCK_HAWK_RANGE = 10;
 // ShockHawk.subclasses(HoveringEnemy);
 class ShockHawk extends HoveringEnemy {
     chasing = false;
-    constructor(center, target) {
+    bodySprite = new Sprite();
+    constructor(center, public target) {
         // HoveringEnemy.prototype.constructor.call(this, ENEMY_SHOCK_HAWK, center, SHOCK_HAWK_RADIUS, 0);
         super(ENEMY_SHOCK_HAWK, center, SHOCK_HAWK_RADIUS, 0);
-        this.target = target;
-        this.chasing = false;
+        // this.target = target;
+        // this.chasing = false;
 
-        this.bodySprite = new Sprite();
+        // this.bodySprite = new Sprite();
         this.bodySprite.drawGeometry = function (c) {
             // draw solid center
             c.beginPath();
@@ -83,7 +84,7 @@ class ShockHawk extends HoveringEnemy {
         }
     }
 
-    draw(c) {
+    draw(c: CanvasRenderingContext2D) {
         c.fillStyle = (this.target == gameState.playerA) ? 'red' : 'blue';
         c.strokeStyle = 'black';
         this.bodySprite.draw(c);

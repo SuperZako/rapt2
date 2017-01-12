@@ -24,6 +24,7 @@ class Hunter extends RotatingEnemy {
     acceleration = new Vector(0, 0);
     jawAngle = 0;
     sprites = [new Sprite(), new Sprite(), new Sprite()];
+    target;
     constructor(center) {
         //RotatingEnemy.prototype.constructor.call(this, ENEMY_HUNTER, center, HUNTER_RADIUS, 0, HUNTER_ELASTICITY);
         super(ENEMY_HUNTER, center, HUNTER_RADIUS, 0, HUNTER_ELASTICITY);

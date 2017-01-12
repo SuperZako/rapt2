@@ -5,7 +5,7 @@
 class AABB {
     lowerLeft: Vector;
     size: Vector;
-    constructor(lowerLeft, upperRight) {
+    constructor(lowerLeft: Vector, upperRight: Vector) {
         this.lowerLeft = new Vector(
             Math.min(lowerLeft.x, upperRight.x),
             Math.min(lowerLeft.y, upperRight.y));

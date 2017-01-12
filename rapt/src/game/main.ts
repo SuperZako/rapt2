@@ -1,4 +1,4 @@
-
+declare var $;
 
 var ENTER_KEY = 13;
 var ESCAPE_KEY = 27;
@@ -47,11 +47,12 @@ function globalScaleFactor() {
 ////////////////////////////////////////////////////////////////////////////////
 // class MenuItem
 ////////////////////////////////////////////////////////////////////////////////
-
-function MenuItem(levelname, title, difficulty) {
-    this.levelname = levelname;
-    this.title = title;
-    this.difficulty = difficulty;
+class MenuItem {
+    constructor(public levelname, public title, public difficulty) {
+        //this.levelname = levelname;
+        //this.title = title;
+        //this.difficulty = difficulty;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

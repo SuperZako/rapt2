@@ -3,6 +3,7 @@
 
 //WalkingEnemy.subclasses(Enemy);
 class WalkingEnemy extends Enemy {
+    hitCircle: Circle;
     constructor(type, center, radius, elasticity) {
         // Enemy.prototype.constructor.call(this, type, elasticity);
         super(type, elasticity);

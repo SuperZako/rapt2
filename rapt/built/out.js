@@ -1183,15 +1183,15 @@ var Entity = (function () {
     Entity.prototype.setCenter = function (vec) { this.getShape().moveTo(vec); };
     Entity.prototype.getColor = function () { throw 'Entity.getColor() unimplemented'; };
     Entity.prototype.getShape = function () { throw 'Entity.getShape() unimplemented'; };
-    Entity.prototype.getCenter = function () { return this.getShape().getCenter(); };
-    Entity.prototype.setCenter = function (center) { this.getShape().moveTo(center); };
+    // getCenter() { return this.getShape().getCenter(); }
+    // setCenter(center) { this.getShape().moveTo(center) }
     Entity.prototype.isOnFloor = function () {
         // THIS IS A GLOBAL NOW var edgeQuad = new EdgeQuad();
         CollisionDetector.onEntityWorld(this, edgeQuad, gameState.world);
         return (edgeQuad.edges[EDGE_FLOOR] != null);
     };
-    Entity.prototype.tick = function () { throw 'Entity.tick() unimplemented'; };
-    Entity.prototype.draw = function () { throw 'Entity.draw() unimplemented'; };
+    Entity.prototype.tick = function (seconds) { throw 'Entity.tick() unimplemented'; };
+    Entity.prototype.draw = function (c) { throw 'Entity.draw() unimplemented'; };
     Entity.prototype.onDeath = function () { };
     Entity.prototype.onRespawn = function () { };
     return Entity;
@@ -1676,9 +1676,11 @@ var BouncyRocket = (function (_super) {
         var _this = 
         // Rocket.prototype.constructor.call(this, center, target, heading, BOUNCY_ROCKET_MAX_ROTATION, ENEMY_BOUNCY_ROCKET);
         _super.call(this, center, target, heading, BOUNCY_ROCKET_MAX_ROTATION, ENEMY_BOUNCY_ROCKET) || this;
-        _this.velocity = new Vector(BOUNCY_ROCKET_SPEED * Math.cos(heading), BOUNCY_ROCKET_SPEED * Math.sin(heading));
         _this.launcher = launcher;
         _this.hitsUntilExplodes = BOUNCY_ROCKET_HEALTH;
+        _this.velocity = new Vector(BOUNCY_ROCKET_SPEED * Math.cos(heading), BOUNCY_ROCKET_SPEED * Math.sin(heading));
+        // this.launcher = launcher;
+        // this.hitsUntilExplodes = BOUNCY_ROCKET_HEALTH;
         _this.sprites[ROCKET_SPRITE_RED].drawGeometry = function (c) {
             drawBouncyRocket(c, false);
         };
@@ -3759,10 +3761,12 @@ var ShockHawk = (function (_super) {
         var _this = 
         // HoveringEnemy.prototype.constructor.call(this, ENEMY_SHOCK_HAWK, center, SHOCK_HAWK_RADIUS, 0);
         _super.call(this, ENEMY_SHOCK_HAWK, center, SHOCK_HAWK_RADIUS, 0) || this;
-        _this.chasing = false;
         _this.target = target;
         _this.chasing = false;
         _this.bodySprite = new Sprite();
+        // this.target = target;
+        // this.chasing = false;
+        // this.bodySprite = new Sprite();
         _this.bodySprite.drawGeometry = function (c) {
             // draw solid center
             c.beginPath();
@@ -4013,10 +4017,11 @@ var WallCrawler = (function (_super) {
         _super.call(this, ENEMY_CRAWLER, center, WALL_CRAWLER_RADIUS, 0) || this;
         _this.firstTick = true;
         _this.clockwise = false;
+        _this.bodySprite = new Sprite();
         _this.firstTick = true;
         _this.clockwise = false;
         _this.velocity = new Vector(Math.cos(direction), Math.sin(direction));
-        _this.bodySprite = new Sprite();
+        // this.bodySprite = new Sprite();
         _this.bodySprite.drawGeometry = function (c) {
             var space = 0.15;
             c.fillStyle = 'black';
@@ -4677,11 +4682,17 @@ function globalScaleFactor() {
 ////////////////////////////////////////////////////////////////////////////////
 // class MenuItem
 ////////////////////////////////////////////////////////////////////////////////
-function MenuItem(levelname, title, difficulty) {
-    this.levelname = levelname;
-    this.title = title;
-    this.difficulty = difficulty;
-}
+var MenuItem = (function () {
+    function MenuItem(levelname, title, difficulty) {
+        this.levelname = levelname;
+        this.title = title;
+        this.difficulty = difficulty;
+        //this.levelname = levelname;
+        //this.title = title;
+        //this.difficulty = difficulty;
+    }
+    return MenuItem;
+}());
 ////////////////////////////////////////////////////////////////////////////////
 // class Menu
 ////////////////////////////////////////////////////////////////////////////////

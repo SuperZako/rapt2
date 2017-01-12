@@ -1,4 +1,4 @@
-// modified from https://github.com/Superficial/keyCode-array
+﻿// modified from https://github.com/Superficial/keyCode-array
 var keyCodeArray = [, , ,
     'CANCEL',
     ,
@@ -223,3 +223,4 @@ var keyCodeArray = [, , ,
     ,
     'META'
 ];
+//# sourceMappingURL=out.js.map

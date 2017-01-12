@@ -167,7 +167,7 @@
     <TypeScriptCompile Include="src\util\keyframe.ts" />
     <TypeScriptCompile Include="src\util\localstorage.ts" />
     <TypeScriptCompile Include="src\util\math.ts" />
-    <Content Include="src\util\sprite.js" />
+    <TypeScriptCompile Include="src\util\sprite.ts" />
     <TypeScriptCompile Include="src\util\util.ts" />
     <TypeScriptCompile Include="src\util\vector.ts" />
     <Content Include="src\world\cell.js" />

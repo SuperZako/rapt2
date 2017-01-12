@@ -1,6 +1,3 @@
-#require <class.js>
-#require <freefallenemy.js>
-
 var GRENADE_LIFETIME = 5;
 var GRENADE_RADIUS = 0.2;
 var GRENADE_ELASTICITY = 0.5;

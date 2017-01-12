@@ -1,6 +1,3 @@
-#require <class.js>
-#require <freefallenemy.js>
-
 var BOMB_RADIUS = 0.15;
 
 Bomb.subclasses(FreefallEnemy);

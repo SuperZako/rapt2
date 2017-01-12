@@ -1,6 +1,3 @@
-#require <class.js>
-#require <enemy.js>
-
 var GOLDEN_COG_RADIUS = 0.25;
 
 GoldenCog.subclasses(Enemy);

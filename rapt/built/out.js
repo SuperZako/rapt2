@@ -3,6 +3,82 @@
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+// class Vector
+var Vector = (function () {
+    function Vector(x, y) {
+        this.x = x;
+        this.y = y;
+        // this.x = x;
+        // this.y = y;
+    }
+    // math operations
+    Vector.prototype.neg = function () { return new Vector(-this.x, -this.y); };
+    ;
+    Vector.prototype.add = function (v) { return new Vector(this.x + v.x, this.y + v.y); };
+    ;
+    Vector.prototype.sub = function (v) { return new Vector(this.x - v.x, this.y - v.y); };
+    ;
+    Vector.prototype.mul = function (f) { return new Vector(this.x * f, this.y * f); };
+    ;
+    Vector.prototype.div = function (f) { return new Vector(this.x / f, this.y / f); };
+    ;
+    Vector.prototype.eq = function (v) { return Math.abs(this.x - v.x) + Math.abs(this.y - v.y) < 0.001; };
+    ;
+    // inplace operations
+    Vector.prototype.inplaceNeg = function () { this.x = -this.x; this.y = -this.y; };
+    ;
+    Vector.prototype.inplaceAdd = function (v) { this.x += v.x; this.y += v.y; };
+    ;
+    Vector.prototype.inplaceSub = function (v) { this.x -= v.x; this.y -= v.y; };
+    ;
+    Vector.prototype.inplaceMul = function (f) { this.x *= f; this.y *= f; };
+    ;
+    Vector.prototype.inplaceDiv = function (f) { this.x /= f; this.y /= f; };
+    ;
+    Vector.prototype.inplaceFlip = function () { var t = this.x; this.x = this.y; this.y = -t; };
+    ; // turns 90 degrees right
+    // other functions
+    Vector.prototype.clone = function () { return new Vector(this.x, this.y); };
+    ;
+    Vector.prototype.dot = function (v) { return this.x * v.x + this.y * v.y; };
+    ;
+    Vector.prototype.lengthSquared = function () { return this.dot(this); };
+    ;
+    Vector.prototype.length = function () { return Math.sqrt(this.lengthSquared()); };
+    ;
+    Vector.prototype.unit = function () { return this.div(this.length()); };
+    ;
+    Vector.prototype.normalize = function () { var len = this.length(); this.x /= len; this.y /= len; };
+    ;
+    Vector.prototype.flip = function () { return new Vector(this.y, -this.x); };
+    ; // turns 90 degrees right
+    Vector.prototype.atan2 = function () { return Math.atan2(this.y, this.x); };
+    ;
+    Vector.prototype.angleBetween = function (v) { return this.atan2() - v.atan2(); };
+    ;
+    Vector.prototype.rotate = function (theta) { var s = Math.sin(theta), c = Math.cos(theta); return new Vector(this.x * c - this.y * s, this.x * s + this.y * c); };
+    ;
+    Vector.prototype.minComponents = function (v) { return new Vector(Math.min(this.x, v.x), Math.min(this.y, v.y)); };
+    ;
+    Vector.prototype.maxComponents = function (v) { return new Vector(Math.max(this.x, v.x), Math.max(this.y, v.y)); };
+    ;
+    Vector.prototype.projectOntoAUnitVector = function (v) { return v.mul(this.dot(v)); };
+    ;
+    Vector.prototype.toString = function () { return '(' + this.x.toFixed(3) + ', ' + this.y.toFixed(3) + ')'; };
+    ;
+    Vector.prototype.adjustTowardsTarget = function (target, maxDistance) {
+        var v = ((target.sub(this)).lengthSquared() < maxDistance * maxDistance) ? target : this.add((target.sub(this)).unit().mul(maxDistance));
+        this.x = v.x;
+        this.y = v.y;
+    };
+    // static functions
+    Vector.fromAngle = function (theta) { return new Vector(Math.cos(theta), Math.sin(theta)); };
+    ;
+    Vector.lerp = function (a, b, percent) { return a.add(b.sub(a).mul(percent)); };
+    ;
+    return Vector;
+}());
+///<reference path="../util/vector.ts" /> 
 // class AABB extends Shape
 var AABB = (function () {
     function AABB(lowerLeft, upperRight) {
@@ -1081,6 +1157,7 @@ var Segment = (function () {
 var SHAPE_CIRCLE = 0;
 var SHAPE_AABB = 1;
 var SHAPE_POLYGON = 2;
+///<reference path="../util/vector.ts" /> 
 // class Entity
 var Entity = (function () {
     function Entity() {
@@ -1119,81 +1196,1754 @@ var Entity = (function () {
     Entity.prototype.onRespawn = function () { };
     return Entity;
 }());
-// class Vector
-var Vector = (function () {
-    function Vector(x, y) {
-        this.x = x;
-        this.y = y;
-        // this.x = x;
-        // this.y = y;
+///<reference path="./entity.ts" /> 
+var MAX_SPAWN_FORCE = 100.0;
+var INNER_SPAWN_RADIUS = 1.0;
+var OUTER_SPAWN_RADIUS = 1.1;
+// enum for enemies
+var ENEMY_BOMB = 0;
+var ENEMY_BOMBER = 1;
+var ENEMY_BOUNCY_ROCKET = 2;
+var ENEMY_BOUNCY_ROCKET_LAUNCHER = 3;
+var ENEMY_CLOUD = 4;
+var ENEMY_MAGNET = 5;
+var ENEMY_GRENADE = 6;
+var ENEMY_GRENADIER = 7;
+var ENEMY_HEADACHE = 8;
+var ENEMY_HELP_SIGN = 9;
+var ENEMY_HUNTER = 10;
+var ENEMY_LASER = 11;
+var ENEMY_MULTI_GUN = 12;
+var ENEMY_POPPER = 13;
+var ENEMY_RIOT_BULLET = 14;
+var ENEMY_JET_STREAM = 15;
+var ENEMY_ROCKET = 16;
+var ENEMY_ROCKET_SPIDER = 17;
+var ENEMY_ROLLER_BEAR = 18;
+var ENEMY_SHOCK_HAWK = 19;
+var ENEMY_SPIKE_BALL = 20;
+var ENEMY_STALACBAT = 21;
+var ENEMY_WALL_AVOIDER = 22;
+var ENEMY_CRAWLER = 23;
+var ENEMY_WHEELIGATOR = 24;
+var ENEMY_DOORBELL = 25;
+// Enemy.subclasses(Entity);
+/**
+  * Abstract class.  Represents dynamic non-user-controlled entities in the game world.
+  */
+var Enemy = (function (_super) {
+    __extends(Enemy, _super);
+    function Enemy(type, elasticity) {
+        var _this = 
+        // Entity.prototype.constructor.call(this);
+        _super.call(this) || this;
+        _this.type = type;
+        _this.elasticity = elasticity;
+        return _this;
+        // this.type = type;
+        // this.elasticity = elasticity;
     }
-    // math operations
-    Vector.prototype.neg = function () { return new Vector(-this.x, -this.y); };
-    ;
-    Vector.prototype.add = function (v) { return new Vector(this.x + v.x, this.y + v.y); };
-    ;
-    Vector.prototype.sub = function (v) { return new Vector(this.x - v.x, this.y - v.y); };
-    ;
-    Vector.prototype.mul = function (f) { return new Vector(this.x * f, this.y * f); };
-    ;
-    Vector.prototype.div = function (f) { return new Vector(this.x / f, this.y / f); };
-    ;
-    Vector.prototype.eq = function (v) { return Math.abs(this.x - v.x) + Math.abs(this.y - v.y) < 0.001; };
-    ;
-    // inplace operations
-    Vector.prototype.inplaceNeg = function () { this.x = -this.x; this.y = -this.y; };
-    ;
-    Vector.prototype.inplaceAdd = function (v) { this.x += v.x; this.y += v.y; };
-    ;
-    Vector.prototype.inplaceSub = function (v) { this.x -= v.x; this.y -= v.y; };
-    ;
-    Vector.prototype.inplaceMul = function (f) { this.x *= f; this.y *= f; };
-    ;
-    Vector.prototype.inplaceDiv = function (f) { this.x /= f; this.y /= f; };
-    ;
-    Vector.prototype.inplaceFlip = function () { var t = this.x; this.x = this.y; this.y = -t; };
-    ; // turns 90 degrees right
-    // other functions
-    Vector.prototype.clone = function () { return new Vector(this.x, this.y); };
-    ;
-    Vector.prototype.dot = function (v) { return this.x * v.x + this.y * v.y; };
-    ;
-    Vector.prototype.lengthSquared = function () { return this.dot(this); };
-    ;
-    Vector.prototype.length = function () { return Math.sqrt(this.lengthSquared()); };
-    ;
-    Vector.prototype.unit = function () { return this.div(this.length()); };
-    ;
-    Vector.prototype.normalize = function () { var len = this.length(); this.x /= len; this.y /= len; };
-    ;
-    Vector.prototype.flip = function () { return new Vector(this.y, -this.x); };
-    ; // turns 90 degrees right
-    Vector.prototype.atan2 = function () { return Math.atan2(this.y, this.x); };
-    ;
-    Vector.prototype.angleBetween = function (v) { return this.atan2() - v.atan2(); };
-    ;
-    Vector.prototype.rotate = function (theta) { var s = Math.sin(theta), c = Math.cos(theta); return new Vector(this.x * c - this.y * s, this.x * s + this.y * c); };
-    ;
-    Vector.prototype.minComponents = function (v) { return new Vector(Math.min(this.x, v.x), Math.min(this.y, v.y)); };
-    ;
-    Vector.prototype.maxComponents = function (v) { return new Vector(Math.max(this.x, v.x), Math.max(this.y, v.y)); };
-    ;
-    Vector.prototype.projectOntoAUnitVector = function (v) { return v.mul(this.dot(v)); };
-    ;
-    Vector.prototype.toString = function () { return '(' + this.x.toFixed(3) + ', ' + this.y.toFixed(3) + ')'; };
-    ;
-    Vector.prototype.adjustTowardsTarget = function (target, maxDistance) {
-        var v = ((target.sub(this)).lengthSquared() < maxDistance * maxDistance) ? target : this.add((target.sub(this)).unit().mul(maxDistance));
-        this.x = v.x;
-        this.y = v.y;
+    // Most enemies should use the default Tick and override methods below
+    Enemy.prototype.tick = function (seconds) {
+        if (this.avoidsSpawn()) {
+            this.setVelocity(this.getVelocity().add(this.avoidSpawnForce().mul(seconds)));
+        }
+        var ref_deltaPosition = { ref: this.move(seconds) };
+        var ref_velocity = { ref: this.getVelocity() };
+        var shape = this.getShape();
+        var contact = null;
+        // Only collide enemies that can collide with the world
+        if (this.canCollide()) {
+            contact = CollisionDetector.collideEntityWorld(this, ref_deltaPosition, ref_velocity, this.elasticity, gameState.world, true);
+            this.setVelocity(ref_velocity.ref);
+        }
+        shape.moveBy(ref_deltaPosition.ref);
+        // If this enemy collided with the world, react to the world
+        if (contact !== null) {
+            this.reactToWorld(contact);
+        }
+        // If this is way out of bounds, kill it
+        if (!CollisionDetector.containsPointShape(shape.getCenter(), gameState.world.getHugeAabb())) {
+            this.setDead(true);
+        }
+        // If the enemy is still alive, collide it with the players
+        if (!this.isDead()) {
+            var players = CollisionDetector.overlapShapePlayers(shape);
+            for (var i = 0; i < players.length; ++i) {
+                if (!players[i].isDead()) {
+                    this.reactToPlayer(players[i]);
+                }
+            }
+        }
+        this.afterTick(seconds);
     };
-    // static functions
-    Vector.fromAngle = function (theta) { return new Vector(Math.cos(theta), Math.sin(theta)); };
+    Enemy.prototype.getColor = function () {
+        return EDGE_ENEMIES;
+    };
+    Enemy.prototype.getElasticity = function () { return this.elasticity; };
     ;
-    Vector.lerp = function (a, b, percent) { return a.add(b.sub(a).mul(percent)); };
+    Enemy.prototype.getType = function () { return this.type; };
     ;
-    return Vector;
+    Enemy.prototype.getTarget = function () { return -1; };
+    ;
+    Enemy.prototype.setTarget = function (player) { };
+    ;
+    Enemy.prototype.onDeath = function () { };
+    ;
+    Enemy.prototype.canCollide = function () { return true; };
+    ;
+    Enemy.prototype.avoidsSpawn = function () { return false; };
+    ;
+    // Accelerate updates velocity and returns the delta position
+    Enemy.prototype.accelerate = function (accel, seconds) {
+        this.setVelocity(this.velocity.add(accel.mul(seconds)));
+        return this.velocity.mul(seconds);
+    };
+    Enemy.prototype.avoidSpawnForce = function () {
+        var relSpawnPosition = gameState.getSpawnPoint().sub(this.getCenter());
+        var radius = this.getShape().radius;
+        var distance = relSpawnPosition.length() - radius;
+        // If inside the inner circle, push with max force
+        if (distance < INNER_SPAWN_RADIUS) {
+            return relSpawnPosition.unit().mul(-MAX_SPAWN_FORCE);
+        }
+        else if (distance < OUTER_SPAWN_RADIUS) {
+            var magnitude = MAX_SPAWN_FORCE * (1 - (distance - INNER_SPAWN_RADIUS) / (OUTER_SPAWN_RADIUS - INNER_SPAWN_RADIUS));
+            return relSpawnPosition.unit().mul(-magnitude);
+        }
+        else
+            return new Vector(0, 0);
+    };
+    // THE FOLLOWING SHOULD BE OVERRIDDEN BY ALL ENEMIES:
+    // This moves the enemy
+    Enemy.prototype.move = function (seconds) {
+        return new Vector(0, 0);
+    };
+    // Enemy's reaction to a collision with the World, by default has no effect
+    Enemy.prototype.reactToWorld = function (contact) { };
+    ;
+    // Enemy's reaction to a collision with a Player, by default kills the Player
+    Enemy.prototype.reactToPlayer = function (player) {
+        player.setDead(true);
+    };
+    // Do stuff that needs an updated enemy, like move the graphics
+    Enemy.prototype.afterTick = function (seconds) { };
+    return Enemy;
+}(Entity));
+///<reference path="./enemy.ts" /> 
+var FREEFALL_ACCEL = -6;
+//FreefallEnemy.subclasses(Enemy);
+var FreefallEnemy = (function (_super) {
+    __extends(FreefallEnemy, _super);
+    function FreefallEnemy(type, center, radius, elasticity) {
+        var _this = 
+        //Enemy.prototype.constructor.call(this, type, elasticity);
+        _super.call(this, type, elasticity) || this;
+        _this.hitCircle = new Circle(center, radius);
+        return _this;
+    }
+    FreefallEnemy.prototype.getShape = function () {
+        return this.hitCircle;
+    };
+    FreefallEnemy.prototype.draw = function (c) {
+        var pos = this.hitCircle.center;
+        c.fillStyle = 'black';
+        c.beginPath();
+        c.arc(pos.x, pos.y, this.hitCircle.radius, 0, Math.PI * 2, false);
+        c.fill();
+    };
+    // This moves the enemy and constrains its position
+    FreefallEnemy.prototype.move = function (seconds) {
+        return this.accelerate(new Vector(0, FREEFALL_ACCEL), seconds);
+    };
+    // Enemy's reaction to a collision with the World
+    FreefallEnemy.prototype.reactToWorld = function (contact) {
+        this.setDead(true);
+    };
+    // Enemy's reaction to a collision with a Player
+    FreefallEnemy.prototype.reactToPlayer = function (player) {
+        this.setDead(true);
+        player.setDead(true);
+    };
+    return FreefallEnemy;
+}(Enemy));
+///<reference path="./freefallenemy.ts" /> 
+var BOMB_RADIUS = 0.15;
+//Bomb.subclasses(FreefallEnemy);
+var Bomb = (function (_super) {
+    __extends(Bomb, _super);
+    function Bomb(center, velocity) {
+        var _this = 
+        //FreefallEnemy.prototype.constructor.call(this, ENEMY_BOMB, center, BOMB_RADIUS, 0);
+        _super.call(this, ENEMY_BOMB, center, BOMB_RADIUS, 0) || this;
+        _this.velocity = velocity;
+        _this.velocity = velocity;
+        return _this;
+    }
+    // bomb particle effects
+    Bomb.prototype.onDeath = function () {
+        var position = this.getShape().getCenter();
+        // fire
+        for (var i = 0; i < 50; ++i) {
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(0.5, 7));
+            Particle().position(position).velocity(direction).radius(0.02, 0.15).bounces(0, 4).elasticity(0.05, 0.9).decay(0.00001, 0.0001).expand(1.0, 1.2).color(1, 0.5, 0, 1).mixColor(1, 1, 0, 1).triangle();
+        }
+        // white center
+        // collide should be false on this
+        Particle().position(position).radius(0.1).bounces(0).gravity(false).decay(0.000001).expand(10).color(1, 1, 1, 5).circle();
+    };
+    return Bomb;
+}(FreefallEnemy));
+// SpawningEnemy.subclasses(Enemy);
+var SpawningEnemy = (function (_super) {
+    __extends(SpawningEnemy, _super);
+    function SpawningEnemy(type, center, width, height, elasticity, frequency, startingTime) {
+        var _this = 
+        // Enemy.prototype.constructor.call(this, type, elasticity);
+        _super.call(this, type, elasticity) || this;
+        _this.spawnFrequency = frequency;
+        // Time until next enemy gets spawned
+        _this.timeUntilNextSpawn = startingTime;
+        _this.hitBox = AABB.makeAABB(center, width, height);
+        return _this;
+    }
+    SpawningEnemy.prototype.getShape = function () {
+        return this.hitBox;
+    };
+    // return a number between 0 and 1 indicating how ready we are for
+    // the next spawn (0 is just spawned and 1 is about to spawn)
+    SpawningEnemy.prototype.getReloadPercentage = function () {
+        return 1 - this.timeUntilNextSpawn / this.spawnFrequency;
+    };
+    // Special tick to include a step to spawn enemies
+    SpawningEnemy.prototype.tick = function (seconds) {
+        this.timeUntilNextSpawn -= seconds;
+        if (this.timeUntilNextSpawn <= 0) {
+            // If an enemy is spawned, increase the time by the spawn frequency
+            if (this.spawn()) {
+                this.timeUntilNextSpawn += this.spawnFrequency;
+            }
+            else {
+                this.timeUntilNextSpawn = 0;
+            }
+        }
+        //Enemy.prototype.tick.call(this, seconds);
+        _super.prototype.tick.call(this, seconds);
+    };
+    SpawningEnemy.prototype.reactToPlayer = function (player) {
+    };
+    // Subclasses of this should overwrite Spawn() to spawn the right type of enemy
+    // Returns true iff an enemy is actually spawned
+    SpawningEnemy.prototype.spawn = function () {
+        throw 'SpawningEnemy.spawn() unimplemented';
+    };
+    return SpawningEnemy;
+}(Enemy));
+///<reference path="./SpawningEnemy.ts" />
+var BOMBER_WIDTH = .4;
+var BOMBER_HEIGHT = .4;
+var BOMBER_SPEED = 2;
+// Frequency is in seconds
+var BOMB_FREQUENCY = 1.0;
+var BOMBER_ELASTICITY = 1.0;
+var BOMBER_EXPLOSION_POWER = 6;
+// Bomber.subclasses(SpawningEnemy);
+var Bomber = (function (_super) {
+    __extends(Bomber, _super);
+    function Bomber(center, angle) {
+        var _this = 
+        //SpawningEnemy.prototype.constructor.call(this, ENEMY_BOMBER, center, BOMBER_WIDTH, BOMBER_HEIGHT, BOMBER_ELASTICITY, BOMB_FREQUENCY, randInRange(0, BOMB_FREQUENCY));
+        _super.call(this, ENEMY_BOMBER, center, BOMBER_WIDTH, BOMBER_HEIGHT, BOMBER_ELASTICITY, BOMB_FREQUENCY, randInRange(0, BOMB_FREQUENCY)) || this;
+        if (angle < Math.PI * 0.25)
+            _this.setVelocity(new Vector(BOMBER_SPEED, 0));
+        else if (angle < Math.PI * 0.75)
+            _this.setVelocity(new Vector(0, BOMBER_SPEED));
+        else if (angle < Math.PI * 1.25)
+            _this.setVelocity(new Vector(-BOMBER_SPEED, 0));
+        else if (angle < Math.PI * 1.75)
+            _this.setVelocity(new Vector(0, -BOMBER_SPEED));
+        else
+            _this.setVelocity(new Vector(BOMBER_SPEED, 0));
+        return _this;
+    }
+    Bomber.prototype.move = function (seconds) {
+        return this.velocity.mul(seconds);
+    };
+    Bomber.prototype.reactToPlayer = function (player) {
+        var relativePos = player.getCenter().sub(this.getCenter());
+        // If player jumps on top of the Bomber, it explodes
+        if (relativePos.y > (BOMBER_HEIGHT - .05)) {
+            player.setVelocity(new Vector(player.getVelocity().x, BOMBER_EXPLOSION_POWER));
+            this.setDead(true);
+        }
+        else if (player.isSuperJumping) {
+            this.setDead(true);
+        }
+        else {
+            player.setDead(true);
+        }
+    };
+    Bomber.prototype.spawn = function () {
+        var spawnPoint = new Vector(this.hitBox.lowerLeft.x + this.hitBox.getWidth() * 0.5, this.hitBox.getBottom());
+        gameState.addEnemy(new Bomb(spawnPoint, new Vector(0, Math.min(this.velocity.y, -.3))), spawnPoint);
+        return true;
+    };
+    Bomber.prototype.afterTick = function () {
+        // drawing stuff
+    };
+    Bomber.prototype.onDeath = function () {
+        Bomb.prototype.onDeath.call(this);
+        gameState.incrementStat(STAT_ENEMY_DEATHS);
+    };
+    Bomber.prototype.draw = function (c) {
+        var pos = this.getCenter();
+        c.strokeStyle = 'black';
+        c.beginPath();
+        c.moveTo(pos.x - 0.25, pos.y - 0.2);
+        c.lineTo(pos.x - 0.25, pos.y - 0.1);
+        c.lineTo(pos.x - 0.1, pos.y + 0.05);
+        c.lineTo(pos.x + 0.1, pos.y + 0.05);
+        c.lineTo(pos.x + 0.25, pos.y - 0.1);
+        c.lineTo(pos.x + 0.25, pos.y - 0.2);
+        c.arc(pos.x, pos.y - BOMBER_HEIGHT * 0.5, BOMB_RADIUS, 0, Math.PI, false);
+        c.lineTo(pos.x - 0.25, pos.y - 0.2);
+        c.moveTo(pos.x - 0.1, pos.y + 0.05);
+        c.lineTo(pos.x - 0.2, pos.y + 0.15);
+        c.moveTo(pos.x + 0.1, pos.y + 0.05);
+        c.lineTo(pos.x + 0.2, pos.y + 0.15);
+        c.stroke();
+        c.fillStyle = 'black';
+        c.beginPath();
+        c.arc(pos.x, pos.y - BOMBER_HEIGHT * 0.5, BOMB_RADIUS * this.getReloadPercentage(), 0, 2 * Math.PI, false);
+        c.fill();
+    };
+    return Bomber;
+}(SpawningEnemy));
+// RotatingEnemy.subclasses(Enemy);
+/**
+  * Abstract class representing enemies that may rotating, including seeking enemies.
+  * These enemies are all circular.
+  */
+var RotatingEnemy = (function (_super) {
+    __extends(RotatingEnemy, _super);
+    function RotatingEnemy(type, center, radius, heading, elasticity) {
+        var _this = 
+        // Enemy.prototype.constructor.call(this, type, elasticity);
+        _super.call(this, type, elasticity) || this;
+        _this.hitCircle = new Circle(center, radius);
+        _this.heading = heading;
+        return _this;
+    }
+    RotatingEnemy.prototype.getShape = function () {
+        return this.hitCircle;
+    };
+    return RotatingEnemy;
+}(Enemy));
+///<reference path="./RotatingEnemy.ts" />
+var ROCKET_SPRITE_RED = 0;
+var ROCKET_SPRITE_BLUE = 1;
+var ROCKET_SPEED = 2.5;
+// Max rotation in radians / second
+var ROCKET_MAX_ROTATION = 8;
+var ROCKET_RADIUS = .15;
+var ROCKET_ELASTICITY = 1;
+// In seconds, the amount of time the Rocket's direction is fixed
+var ROCKET_HEADING_CONSTRAINT_TIME = 0.3;
+var PARTICLE_FREQUENCY = 0.03;
+function drawRocket(c) {
+    var size = 0.075;
+    c.strokeStyle = 'black';
+    c.beginPath();
+    c.moveTo(-ROCKET_RADIUS, size);
+    c.lineTo(ROCKET_RADIUS - size, size);
+    c.lineTo(ROCKET_RADIUS, 0);
+    c.lineTo(ROCKET_RADIUS - size, -size);
+    c.lineTo(-ROCKET_RADIUS, -size);
+    c.closePath();
+    c.fill();
+    c.stroke();
+}
+// Rocket.subclasses(RotatingEnemy);
+var Rocket = (function (_super) {
+    __extends(Rocket, _super);
+    function Rocket(center, target, heading, maxRotation, type) {
+        var _this = 
+        //RotatingEnemy.prototype.constructor.call(this, type, center, ROCKET_RADIUS, heading, ROCKET_ELASTICITY);
+        _super.call(this, type, center, ROCKET_RADIUS, heading, ROCKET_ELASTICITY) || this;
+        _this.sprites = [new Sprite(), new Sprite];
+        _this.target = target;
+        _this.maxRotation = maxRotation;
+        _this.timeUntilFree = ROCKET_HEADING_CONSTRAINT_TIME;
+        _this.timeUntilNextParticle = 0;
+        _this.velocity = new Vector(ROCKET_SPEED * Math.cos(heading), ROCKET_SPEED * Math.sin(heading));
+        _this.sprites = [new Sprite(), new Sprite];
+        _this.sprites[ROCKET_SPRITE_RED].drawGeometry = function (c) {
+            c.fillStyle = 'red';
+            drawRocket(c);
+        };
+        _this.sprites[ROCKET_SPRITE_BLUE].drawGeometry = function (c) {
+            c.fillStyle = 'blue';
+            drawRocket(c);
+        };
+        return _this;
+    }
+    Rocket.prototype.getTarget = function () { return this.target === gameState.playerB; };
+    Rocket.prototype.setTarget = function (player) { this.target = player; };
+    Rocket.prototype.calcHeading = function (seconds) {
+        if (this.target.isDead())
+            return;
+        var delta = this.target.getCenter().sub(this.getCenter());
+        var angle = delta.atan2();
+        this.heading = adjustAngleToTarget(this.heading, angle, this.maxRotation * seconds);
+    };
+    Rocket.prototype.move = function (seconds) {
+        if (this.timeUntilFree <= 0) {
+            this.calcHeading(seconds);
+            this.velocity = new Vector(ROCKET_SPEED * Math.cos(this.heading), ROCKET_SPEED * Math.sin(this.heading));
+        }
+        else {
+            this.timeUntilFree -= seconds;
+        }
+        return this.velocity.mul(seconds);
+    };
+    Rocket.prototype.afterTick = function (seconds) {
+        var position = this.getCenter();
+        this.sprites[ROCKET_SPRITE_RED].offsetBeforeRotation = position;
+        this.sprites[ROCKET_SPRITE_BLUE].offsetBeforeRotation = position;
+        this.sprites[ROCKET_SPRITE_RED].angle = this.heading;
+        this.sprites[ROCKET_SPRITE_BLUE].angle = this.heading;
+        position = position.sub(this.velocity.unit().mul(ROCKET_RADIUS));
+        this.timeUntilNextParticle -= seconds;
+        while (this.timeUntilNextParticle <= 0 && !this.isDead()) {
+            // add a flame
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
+            direction = direction.mul(randInRange(0, 2)).sub(this.velocity.mul(3));
+            Particle().position(position).velocity(direction).radius(0.1, 0.15).bounces(1).decay(0.000001, 0.00001).expand(1.0, 1.2).color(1, 0.5, 0, 1).mixColor(1, 1, 0, 1).triangle();
+            // add a puff of smoke
+            direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
+            direction = direction.mul(randInRange(0.25, 1)).sub(this.velocity);
+            Particle().position(position).velocity(direction).radius(0.05, 0.1).bounces(1).elasticity(0.05, 0.9).decay(0.0005, 0.001).expand(1.2, 1.4).color(0, 0, 0, 0.25).mixColor(0.25, 0.25, 0.25, 0.75).circle().gravity(-0.4, 0);
+            this.timeUntilNextParticle += PARTICLE_FREQUENCY;
+        }
+    };
+    Rocket.prototype.reactToWorld = function (contact) {
+        this.setDead(true);
+    };
+    Rocket.prototype.reactToPlayer = function (player) {
+        this.setDead(true);
+        player.setDead(true);
+    };
+    Rocket.prototype.onDeath = function () {
+        var position = this.getCenter();
+        // fire
+        for (var i = 0; i < 50; ++i) {
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
+            direction = direction.mul(randInRange(0.5, 17));
+            Particle().position(position).velocity(direction).radius(0.02, 0.15).bounces(0, 4).elasticity(0.05, 0.9).decay(0.00001, 0.0001).expand(1.0, 1.2).color(1, 0.5, 0, 1).mixColor(1, 1, 0, 1).triangle();
+        }
+    };
+    Rocket.prototype.draw = function (c) {
+        this.sprites[this.target == gameState.playerA ? ROCKET_SPRITE_RED : ROCKET_SPRITE_BLUE].draw(c);
+    };
+    return Rocket;
+}(RotatingEnemy));
+///<reference path="./rocket.ts" />
+var BOUNCY_ROCKET_SPEED = 4;
+var BOUNCY_ROCKET_MAX_ROTATION = 3;
+var BOUNCY_ROCKET_HEALTH = 2;
+function drawBouncyRocket(c, isBlue) {
+    var size = 0.1;
+    c.strokeStyle = 'black';
+    c.fillStyle = isBlue ? 'blue' : 'red';
+    c.beginPath();
+    c.moveTo(-ROCKET_RADIUS, size);
+    c.arc(ROCKET_RADIUS - size, 0, size, Math.PI / 2, -Math.PI / 2, true);
+    c.lineTo(-ROCKET_RADIUS, -size);
+    c.fill();
+    c.stroke();
+    c.fillStyle = isBlue ? 'red' : 'blue';
+    c.beginPath();
+    c.arc(-ROCKET_RADIUS, 0, size, -Math.PI / 2, Math.PI / 2, false);
+    c.closePath();
+    c.fill();
+    c.stroke();
+}
+// BouncyRocket.subclasses(Rocket);
+var BouncyRocket = (function (_super) {
+    __extends(BouncyRocket, _super);
+    function BouncyRocket(center, target, heading, launcher) {
+        var _this = 
+        // Rocket.prototype.constructor.call(this, center, target, heading, BOUNCY_ROCKET_MAX_ROTATION, ENEMY_BOUNCY_ROCKET);
+        _super.call(this, center, target, heading, BOUNCY_ROCKET_MAX_ROTATION, ENEMY_BOUNCY_ROCKET) || this;
+        _this.velocity = new Vector(BOUNCY_ROCKET_SPEED * Math.cos(heading), BOUNCY_ROCKET_SPEED * Math.sin(heading));
+        _this.launcher = launcher;
+        _this.hitsUntilExplodes = BOUNCY_ROCKET_HEALTH;
+        _this.sprites[ROCKET_SPRITE_RED].drawGeometry = function (c) {
+            drawBouncyRocket(c, false);
+        };
+        _this.sprites[ROCKET_SPRITE_BLUE].drawGeometry = function (c) {
+            drawBouncyRocket(c, true);
+        };
+        return _this;
+    }
+    BouncyRocket.prototype.move = function (seconds) {
+        this.heading = this.velocity.atan2();
+        this.calcHeading(seconds);
+        this.velocity = new Vector(BOUNCY_ROCKET_SPEED * Math.cos(this.heading), BOUNCY_ROCKET_SPEED * Math.sin(this.heading));
+        return this.velocity.mul(seconds);
+    };
+    BouncyRocket.prototype.reactToWorld = function (contact) {
+        --this.hitsUntilExplodes;
+        if (this.hitsUntilExplodes <= 0) {
+            this.setDead(true);
+        }
+        else {
+            this.target = gameState.getOtherPlayer(this.target);
+        }
+    };
+    BouncyRocket.prototype.setDead = function (isDead) {
+        Entity.prototype.setDead.call(this, isDead);
+        if (isDead && this.launcher !== null) {
+            this.launcher.rocketDestroyed();
+        }
+    };
+    return BouncyRocket;
+}(Rocket));
+///<reference path="./SpawningEnemy.ts" />
+var BOUNCY_LAUNCHER_WIDTH = .5;
+var BOUNCY_LAUNCHER_HEIGHT = .5;
+var BOUNCY_LAUNCHER_SHOOT_FREQ = 1;
+var BOUNCY_LAUNCHER_RANGE = 8;
+// BouncyRocketLauncher.subclasses(SpawningEnemy);
+var BouncyRocketLauncher = (function (_super) {
+    __extends(BouncyRocketLauncher, _super);
+    function BouncyRocketLauncher(center, target) {
+        var _this = 
+        //SpawningEnemy.prototype.constructor.call(this, ENEMY_BOUNCY_ROCKET_LAUNCHER, center, BOUNCY_LAUNCHER_WIDTH, BOUNCY_LAUNCHER_HEIGHT, 0, BOUNCY_LAUNCHER_SHOOT_FREQ, 0);
+        _super.call(this, ENEMY_BOUNCY_ROCKET_LAUNCHER, center, BOUNCY_LAUNCHER_WIDTH, BOUNCY_LAUNCHER_HEIGHT, 0, BOUNCY_LAUNCHER_SHOOT_FREQ, 0) || this;
+        _this.target = target;
+        _this.canFire = true;
+        _this.angle = 0;
+        _this.bodySprite = new Sprite();
+        if (_this.target === gameState.playerA) {
+            _this.bodySprite.drawGeometry = function (c) {
+                // End of gun
+                c.strokeStyle = 'black';
+                c.beginPath();
+                c.moveTo(0, -0.1);
+                c.lineTo(-0.3, -0.1);
+                c.lineTo(-0.3, 0.1);
+                c.lineTo(0, 0 + 0.1);
+                c.stroke();
+                // Main body
+                c.fillStyle = 'red';
+                c.beginPath();
+                c.arc(0, 0, 0.2, 0, 2 * Math.PI, false);
+                c.fill();
+                c.fillStyle = 'blue';
+                c.beginPath();
+                c.arc(0, 0, 0.2, 1.65 * Math.PI, 2.35 * Math.PI, false);
+                c.fill();
+                c.strokeStyle = 'black';
+                c.beginPath();
+                c.arc(0, 0, 0.2, 0, 2 * Math.PI, false);
+                c.stroke();
+                c.beginPath();
+                c.moveTo(0.1, -0.18);
+                c.lineTo(0.1, 0.18);
+                c.stroke();
+            };
+        }
+        else {
+            _this.bodySprite.drawGeometry = function (c) {
+                // End of gun
+                c.strokeStyle = 'black';
+                c.beginPath();
+                c.moveTo(0, -0.1);
+                c.lineTo(-0.3, -0.1);
+                c.lineTo(-0.3, 0.1);
+                c.lineTo(0, 0 + 0.1);
+                c.stroke();
+                // Main body
+                c.fillStyle = 'blue';
+                c.beginPath();
+                c.arc(0, 0, 0.2, 0, 2 * Math.PI, false);
+                c.fill();
+                c.fillStyle = 'red';
+                c.beginPath();
+                c.arc(0, 0, 0.2, 1.65 * Math.PI, 2.35 * Math.PI, false);
+                c.fill();
+                c.strokeStyle = 'black';
+                c.beginPath();
+                c.arc(0, 0, 0.2, 0, 2 * Math.PI, false);
+                c.stroke();
+                c.fillStyle = 'black';
+                c.beginPath();
+                c.moveTo(0.1, -0.18);
+                c.lineTo(0.1, 0.18);
+                c.stroke();
+            };
+        }
+        return _this;
+    }
+    BouncyRocketLauncher.prototype.setTarget = function (player) { this.target = player; };
+    BouncyRocketLauncher.prototype.canCollide = function () { return false; };
+    BouncyRocketLauncher.prototype.rocketDestroyed = function () { this.canFire = true; };
+    BouncyRocketLauncher.prototype.getTarget = function () { return this.target === gameState.playerB; };
+    BouncyRocketLauncher.prototype.spawn = function () {
+        if (this.canFire && !this.target.isDead()) {
+            var targetDelta = this.target.getCenter().sub(this.getCenter());
+            // If Player is out of range or out of line of sight, don't launch anything
+            if (targetDelta.length() < BOUNCY_LAUNCHER_RANGE) {
+                if (!CollisionDetector.lineOfSightWorld(this.getCenter(), this.target.getCenter(), gameState.world)) {
+                    gameState.addEnemy(new BouncyRocket(this.getCenter(), this.target, targetDelta.atan2(), this), this.getCenter());
+                    this.canFire = false;
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+    BouncyRocketLauncher.prototype.afterTick = function (seconds) {
+        var position = this.getCenter();
+        if (!this.target.isDead()) {
+            this.bodySprite.angle = (position.sub(this.target.getCenter())).atan2();
+        }
+        this.bodySprite.offsetBeforeRotation = position;
+    };
+    BouncyRocketLauncher.prototype.draw = function (c) {
+        this.bodySprite.draw(c);
+    };
+    return BouncyRocketLauncher;
+}(SpawningEnemy));
+///<reference path="./RotatingEnemy.ts" />
+var CORROSION_CLOUD_RADIUS = .5;
+var CORROSION_CLOUD_SPEED = .7;
+var CORROSION_CLOUD_ACCEL = 10;
+// CorrosionCloud.subclasses(RotatingEnemy);
+var CorrosionCloud = (function (_super) {
+    __extends(CorrosionCloud, _super);
+    function CorrosionCloud(center, target) {
+        var _this = 
+        // RotatingEnemy.prototype.constructor.call(this, ENEMY_CLOUD, center, CORROSION_CLOUD_RADIUS, 0, 0);
+        _super.call(this, ENEMY_CLOUD, center, CORROSION_CLOUD_RADIUS, 0, 0) || this;
+        _this.target = target;
+        _this.smoothedVelocity = new Vector(0, 0);
+        return _this;
+    }
+    CorrosionCloud.prototype.canCollide = function () {
+        return false;
+    };
+    CorrosionCloud.prototype.avoidsSpawn = function () {
+        return true;
+    };
+    CorrosionCloud.prototype.move = function (seconds) {
+        var avoidingSpawn = false;
+        if (!this.target)
+            return new Vector(0, 0);
+        var targetDelta = this.target.getCenter().sub(this.getCenter());
+        // As long as the max rotation is over 2 pi, it will rotate to face the player no matter what
+        this.heading = adjustAngleToTarget(this.heading, targetDelta.atan2(), 7);
+        // ACCELERATION
+        var speed = CORROSION_CLOUD_SPEED * CORROSION_CLOUD_ACCEL * seconds;
+        this.velocity.x += speed * Math.cos(this.heading);
+        this.velocity.y += speed * Math.sin(this.heading);
+        if (this.velocity.lengthSquared() > (CORROSION_CLOUD_SPEED * CORROSION_CLOUD_SPEED)) {
+            this.velocity.normalize();
+            this.velocity.inplaceMul(CORROSION_CLOUD_SPEED);
+        }
+        return this.velocity.mul(seconds);
+    };
+    CorrosionCloud.prototype.afterTick = function (seconds) {
+        var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
+        var center = this.getCenter().add(direction.mul(randInRange(0, CORROSION_CLOUD_RADIUS)));
+        var isRed = (this.target === gameState.playerA) ? 0.4 : 0;
+        var isBlue = (this.target === gameState.playerB) ? 0.3 : 0;
+        this.smoothedVelocity = this.smoothedVelocity.mul(0.95).add(this.velocity.mul(0.05));
+        Particle().position(center).velocity(this.smoothedVelocity.sub(new Vector(0.1, 0.1)), this.smoothedVelocity.add(new Vector(0.1, 0.1))).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).expand(1, 1.2).color(0.2 + isRed, 0.2, 0.2 + isBlue, 1).mixColor(0.1 + isRed, 0.1, 0.1 + isBlue, 1).circle().gravity(-0.4, 0);
+    };
+    CorrosionCloud.prototype.getTarget = function () {
+        return this.target === gameState.playerB;
+    };
+    CorrosionCloud.prototype.draw = function (c) {
+        // do nothing, it's all particles!
+    };
+    return CorrosionCloud;
+}(RotatingEnemy));
+///<reference path="./RotatingEnemy.ts" />
+var DOOM_MAGNET_RADIUS = .3;
+var DOOM_MAGNET_ELASTICITY = 0.5;
+var DOOM_MAGNET_RANGE = 10;
+var DOOM_MAGNET_ACCEL = 2;
+var MAGNET_MAX_ROTATION = 2 * Math.PI;
+//DoomMagnet.subclasses(RotatingEnemy);
+var DoomMagnet = (function (_super) {
+    __extends(DoomMagnet, _super);
+    function DoomMagnet(center) {
+        var _this = 
+        // RotatingEnemy.prototype.constructor.call(this, ENEMY_MAGNET, center, DOOM_MAGNET_RADIUS, 0, DOOM_MAGNET_ELASTICITY);
+        _super.call(this, ENEMY_MAGNET, center, DOOM_MAGNET_RADIUS, 0, DOOM_MAGNET_ELASTICITY) || this;
+        _this.bodySprite = new Sprite();
+        _this.bodySprite.drawGeometry = function (c) {
+            var length = 0.15;
+            var outerRadius = 0.15;
+            var innerRadius = 0.05;
+            for (var scale = -1; scale <= 1; scale += 2) {
+                c.fillStyle = 'red';
+                c.beginPath();
+                c.moveTo(-outerRadius - length, scale * innerRadius);
+                c.lineTo(-outerRadius - length, scale * outerRadius);
+                c.lineTo(-outerRadius - length + (outerRadius - innerRadius), scale * outerRadius);
+                c.lineTo(-outerRadius - length + (outerRadius - innerRadius), scale * innerRadius);
+                c.fill();
+                c.fillStyle = 'blue';
+                c.beginPath();
+                c.moveTo(outerRadius + length, scale * innerRadius);
+                c.lineTo(outerRadius + length, scale * outerRadius);
+                c.lineTo(outerRadius + length - (outerRadius - innerRadius), scale * outerRadius);
+                c.lineTo(outerRadius + length - (outerRadius - innerRadius), scale * innerRadius);
+                c.fill();
+            }
+            c.strokeStyle = 'black';
+            // draw one prong of the magnet 
+            c.beginPath();
+            c.arc(outerRadius, 0, outerRadius, 1.5 * Math.PI, 0.5 * Math.PI, true);
+            c.lineTo(outerRadius + length, outerRadius);
+            c.lineTo(outerRadius + length, innerRadius);
+            c.arc(outerRadius, 0, innerRadius, 0.5 * Math.PI, 1.5 * Math.PI, false);
+            c.lineTo(outerRadius + length, -innerRadius);
+            c.lineTo(outerRadius + length, -outerRadius);
+            c.lineTo(outerRadius, -outerRadius);
+            c.stroke();
+            // other prong
+            c.beginPath();
+            c.arc(-outerRadius, 0, outerRadius, 1.5 * Math.PI, 2.5 * Math.PI, false);
+            c.lineTo(-outerRadius - length, outerRadius);
+            c.lineTo(-outerRadius - length, innerRadius);
+            c.arc(-outerRadius, 0, innerRadius, 2.5 * Math.PI, 1.5 * Math.PI, true);
+            c.lineTo(-outerRadius - length, -innerRadius);
+            c.lineTo(-outerRadius - length, -outerRadius);
+            c.lineTo(-outerRadius, -outerRadius);
+            c.stroke();
+        };
+        return _this;
+    }
+    DoomMagnet.prototype.avoidsSpawn = function () {
+        return true;
+    };
+    DoomMagnet.prototype.calcHeadingVector = function (target) {
+        if (target.isDead())
+            return new Vector(0, 0);
+        var delta = target.getCenter().sub(this.getCenter());
+        if (delta.lengthSquared() > (DOOM_MAGNET_RANGE * DOOM_MAGNET_RANGE))
+            return new Vector(0, 0);
+        delta.normalize();
+        return delta;
+    };
+    DoomMagnet.prototype.move = function (seconds) {
+        var playerA = gameState.playerA;
+        var playerB = gameState.playerB;
+        var headingA = this.calcHeadingVector(playerA);
+        var headingB = this.calcHeadingVector(playerB);
+        var heading = (headingA.add(headingB)).mul(DOOM_MAGNET_ACCEL);
+        var delta = this.accelerate(heading, seconds);
+        // Time independent version of mulitiplying by 0.994
+        this.velocity.inplaceMul(Math.pow(0.547821, seconds));
+        var center = this.getCenter();
+        var oldAngle = this.bodySprite.angle;
+        var targetAngle = oldAngle;
+        if (!playerA.isDead() && playerB.isDead()) {
+            targetAngle = (playerA.getCenter().sub(center)).atan2() + Math.PI;
+        }
+        else if (playerA.isDead() && !playerB.isDead()) {
+            targetAngle = (playerB.getCenter().sub(center)).atan2();
+        }
+        else if (!playerA.isDead() && !playerB.isDead()) {
+            var needsFlip = (playerA.getCenter().sub(center).flip().dot(playerB.getCenter().sub(center)) < 0);
+            targetAngle = heading.atan2() - Math.PI * 0.5 + Math.PI * needsFlip;
+        }
+        this.bodySprite.angle = adjustAngleToTarget(oldAngle, targetAngle, MAGNET_MAX_ROTATION * seconds);
+        return delta;
+    };
+    DoomMagnet.prototype.afterTick = function (seconds) {
+        var position = this.getCenter();
+        this.bodySprite.offsetBeforeRotation = new Vector(position.x, position.y);
+    };
+    DoomMagnet.prototype.draw = function (c) {
+        this.bodySprite.draw(c);
+    };
+    return DoomMagnet;
+}(RotatingEnemy));
+///<reference path="./Enemy.ts" />
+// enum
+var DOORBELL_OPEN = 0;
+var DOORBELL_CLOSE = 1;
+var DOORBELL_TOGGLE = 2;
+// Must be wider and taller than the player to avoid double toggling 
+var DOORBELL_WIDTH = 0.40;
+// PLAYER_HEIGHT + .01
+var DOORBELL_HEIGHT = 0.76;
+var DOORBELL_RADIUS = 0.11;
+var DOORBELL_SLICES = 3;
+//Doorbell.subclasses(Enemy);
+var Doorbell = (function (_super) {
+    __extends(Doorbell, _super);
+    function Doorbell(center, behavior, visible) {
+        var _this = 
+        //Enemy.prototype.constructor.call(this, ENEMY_DOORBELL, 1);
+        _super.call(this, ENEMY_DOORBELL, 1) || this;
+        _this.hitBox = AABB.makeAABB(center, DOORBELL_WIDTH, DOORBELL_HEIGHT);
+        _this.rotationPercent = 1;
+        _this.restingAngle = randInRange(0, 2 * Math.PI);
+        _this.behavior = behavior;
+        _this.visible = visible;
+        _this.triggeredLastTick = false;
+        _this.triggeredThisTick = false;
+        _this.doors = [];
+        return _this;
+    }
+    Doorbell.prototype.getShape = function () { return this.hitBox; };
+    Doorbell.prototype.addDoor = function (doorIndex) { this.doors.push(doorIndex); };
+    Doorbell.prototype.canCollide = function () { return false; };
+    Doorbell.prototype.tick = function (seconds) {
+        this.rotationPercent += seconds;
+        if (this.rotationPercent > 1) {
+            this.rotationPercent = 1;
+        }
+        this.triggeredThisTick = false;
+        Enemy.prototype.tick.call(this, seconds);
+        this.triggeredLastTick = this.triggeredThisTick;
+    };
+    Doorbell.prototype.reactToPlayer = function (player) {
+        this.triggeredThisTick = true;
+        if (this.triggeredLastTick) {
+            return;
+        }
+        for (var i = 0; i < this.doors.length; ++i) {
+            gameState.getDoor(this.doors[i]).act(this.behavior, false, true);
+        }
+        for (var i = 0; i < 50; ++i) {
+            var rotationAngle = randInRange(0, 2 * Math.PI);
+            var direction = Vector.fromAngle(rotationAngle).mul(randInRange(3, 5));
+            Particle().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(1, 1, 1, 1);
+        }
+        this.rotationPercent = 0;
+    };
+    Doorbell.prototype.draw = function (c) {
+        if (this.visible) {
+            var pos = this.getCenter();
+            var startingAngle = this.restingAngle + (2 * Math.PI / 3) / (this.rotationPercent + 0.1);
+            c.fillStyle = 'white';
+            c.strokeStyle = 'black';
+            c.beginPath();
+            c.arc(pos.x, pos.y, DOORBELL_RADIUS, 0, 2 * Math.PI, false);
+            c.fill();
+            c.stroke();
+            c.beginPath();
+            for (var i = 0; i < DOORBELL_SLICES; ++i) {
+                c.moveTo(pos.x, pos.y);
+                var nextPos = pos.add(Vector.fromAngle(startingAngle + (i - 0.5) * (2 * Math.PI / DOORBELL_SLICES)).mul(DOORBELL_RADIUS));
+                c.lineTo(nextPos.x, nextPos.y);
+            }
+            c.stroke();
+        }
+    };
+    return Doorbell;
+}(Enemy));
+///<reference path="./Enemy.ts" />
+var GOLDEN_COG_RADIUS = 0.25;
+//GoldenCog.subclasses(Enemy);
+var GoldenCog = (function (_super) {
+    __extends(GoldenCog, _super);
+    function GoldenCog(center) {
+        var _this = 
+        //Enemy.prototype.constructor.call(this, -1, 0);
+        _super.call(this, -1, 0) || this;
+        _this.timeSinceStart = 0;
+        _this.hitCircle = new Circle(center, GOLDEN_COG_RADIUS);
+        _this.timeSinceStart = 0;
+        gameState.incrementStat(STAT_NUM_COGS);
+        return _this;
+    }
+    GoldenCog.prototype.getShape = function () {
+        return this.hitCircle;
+    };
+    GoldenCog.prototype.reactToPlayer = function (player) {
+        this.setDead(true);
+    };
+    GoldenCog.prototype.onDeath = function () {
+        if (gameState.gameStatus === GAME_IN_PLAY) {
+            gameState.incrementStat(STAT_COGS_COLLECTED);
+        }
+        // Golden particle goodness
+        var position = this.getCenter();
+        for (var i = 0; i < 100; ++i) {
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
+            direction = this.velocity.add(direction.mul(randInRange(1, 5)));
+            Particle().position(position).velocity(direction).radius(0.01, 1.5).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).color(0.9, 0.87, 0, 1).mixColor(1, 0.96, 0, 1).triangle();
+        }
+    };
+    GoldenCog.prototype.afterTick = function (seconds) {
+        this.timeSinceStart += seconds;
+    };
+    GoldenCog.prototype.draw = function (c) {
+        var position = this.getCenter();
+        drawGoldenCog(c, position.x, position.y, this.timeSinceStart);
+    };
+    return GoldenCog;
+}(Enemy));
+///<reference path="./FreefallEnemy.ts" />
+var GRENADE_LIFETIME = 5;
+var GRENADE_RADIUS = 0.2;
+var GRENADE_ELASTICITY = 0.5;
+//Grenade.subclasses(FreefallEnemy);
+var Grenade = (function (_super) {
+    __extends(Grenade, _super);
+    function Grenade(center, direction, speed) {
+        var _this = 
+        //FreefallEnemy.prototype.constructor.call(this, ENEMY_GRENADE, center, GRENADE_RADIUS, GRENADE_ELASTICITY);
+        _super.call(this, ENEMY_GRENADE, center, GRENADE_RADIUS, GRENADE_ELASTICITY) || this;
+        _this.timeUntilExplodes = GRENADE_LIFETIME;
+        _this.velocity = new Vector(speed * Math.cos(direction), speed * Math.sin(direction));
+        _this.timeUntilExplodes = GRENADE_LIFETIME;
+        return _this;
+    }
+    Grenade.prototype.draw = function (c) {
+        var position = this.getShape().getCenter();
+        var percentUntilExplodes = this.timeUntilExplodes / GRENADE_LIFETIME;
+        // draw the expanding dot in the center
+        c.fillStyle = 'black';
+        c.beginPath();
+        c.arc(position.x, position.y, (1 - percentUntilExplodes) * GRENADE_RADIUS, 0, Math.PI * 2, false);
+        c.fill();
+        // draw the rim
+        c.strokeStyle = 'black';
+        c.beginPath();
+        c.arc(position.x, position.y, GRENADE_RADIUS, 0, Math.PI * 2, false);
+        c.stroke();
+    };
+    // Grenades have a Tick that counts until their explosion
+    Grenade.prototype.tick = function (seconds) {
+        this.timeUntilExplodes -= seconds;
+        if (this.timeUntilExplodes <= 0) {
+            this.setDead(true);
+        }
+        FreefallEnemy.prototype.tick.call(this, seconds);
+    };
+    // Grenades bounce around, and are not destroyed by edges like other FreefallEnemies
+    Grenade.prototype.reactToWorld = function (contact) {
+    };
+    Grenade.prototype.onDeath = function () {
+        var position = this.getCenter();
+        // fire
+        for (var i = 0; i < 100; i++) {
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(1, 10));
+            Particle().position(position).velocity(direction).radius(0.1, 0.2).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0001, 0.001).expand(1, 1.2).color(1, 0.25, 0, 1).mixColor(1, 0.5, 0, 1).triangle();
+        }
+        // smoke
+        for (var i = 0; i < 50; i++) {
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
+            direction = new Vector(0, 1).add(direction.mul(randInRange(0.25, 1)));
+            Particle().position(position).velocity(direction).radius(0.1, 0.2).bounces(1, 3).elasticity(0.05, 0.9).decay(0.0005, 0.1).expand(1.1, 1.3).color(0, 0, 0, 1).mixColor(0.5, 0.5, 0.5, 1).circle().gravity(-0.4, 0);
+        }
+    };
+    return Grenade;
+}(FreefallEnemy));
+///<reference path="./SpawningEnemy.ts" />
+var GRENADIER_WIDTH = .5;
+var GRENADIER_HEIGHT = .5;
+// Max speed at which a Grenadier can throw an enemy
+var GRENADIER_RANGE = 8;
+var GRENADIER_SHOOT_FREQ = 1.2;
+// Grenadier.subclasses(SpawningEnemy);
+var Grenadier = (function (_super) {
+    __extends(Grenadier, _super);
+    function Grenadier(center, target) {
+        var _this = 
+        // SpawningEnemy.prototype.constructor.call(this, ENEMY_GRENADIER, center, GRENADIER_WIDTH, GRENADIER_HEIGHT, 0, GRENADIER_SHOOT_FREQ, randInRange(0, GRENADIER_SHOOT_FREQ));
+        _super.call(this, ENEMY_GRENADIER, center, GRENADIER_WIDTH, GRENADIER_HEIGHT, 0, GRENADIER_SHOOT_FREQ, randInRange(0, GRENADIER_SHOOT_FREQ)) || this;
+        _this.target = target;
+        _this.actualRecoilDistance = 0;
+        _this.targetRecoilDistance = 0;
+        _this.bodySprite = new Sprite();
+        // this.target = target;
+        //this.actualRecoilDistance = 0;
+        //this.targetRecoilDistance = 0;
+        //this.bodySprite = new Sprite();
+        _this.bodySprite.drawGeometry = function (c) {
+            var barrelLength = 0.25;
+            var outerRadius = 0.25;
+            var innerRadius = 0.175;
+            c.beginPath();
+            c.moveTo(-outerRadius, -barrelLength);
+            c.lineTo(-innerRadius, -barrelLength);
+            c.lineTo(-innerRadius, -0.02);
+            c.lineTo(0, innerRadius);
+            c.lineTo(innerRadius, -0.02);
+            c.lineTo(innerRadius, -barrelLength);
+            c.lineTo(outerRadius, -barrelLength);
+            c.lineTo(outerRadius, 0);
+            c.lineTo(0, outerRadius + 0.02);
+            c.lineTo(-outerRadius, 0);
+            c.closePath();
+            c.fill();
+            c.stroke();
+        };
+        return _this;
+    }
+    Grenadier.prototype.getTarget = function () {
+        return this.target === gameState.GetPlayerB();
+    };
+    Grenadier.prototype.setTarget = function (player) {
+        this.target = player;
+    };
+    Grenadier.prototype.canCollide = function () {
+        return false;
+    };
+    Grenadier.prototype.spawn = function () {
+        var targetDelta = this.target.getCenter().add(new Vector(0, 3)).sub(this.getCenter());
+        var direction = targetDelta.atan2();
+        var distance = targetDelta.length();
+        // If Player is out of range or out of line of sight, don't throw anything
+        if (!this.target.isDead() && distance < GRENADIER_RANGE) {
+            if (!CollisionDetector.lineOfSightWorld(this.getCenter(), this.target.getCenter(), gameState.world)) {
+                this.targetRecoilDistance = distance * (0.6 / GRENADIER_RANGE);
+                gameState.addEnemy(new Grenade(this.getCenter(), direction, targetDelta.length()), this.getCenter());
+                return true;
+            }
+        }
+        return false;
+    };
+    Grenadier.prototype.afterTick = function (seconds) {
+        var position = this.getCenter();
+        if (!this.target.isDead()) {
+            this.bodySprite.angle = this.target.getCenter().add(new Vector(0, 3)).sub(position).atan2() + Math.PI / 2;
+        }
+        this.bodySprite.offsetBeforeRotation = position;
+        if (this.actualRecoilDistance < this.targetRecoilDistance) {
+            this.actualRecoilDistance += 5 * seconds;
+            if (this.actualRecoilDistance >= this.targetRecoilDistance) {
+                this.actualRecoilDistance = this.targetRecoilDistance;
+                this.targetRecoilDistance = 0;
+            }
+        }
+        else {
+            this.actualRecoilDistance -= 0.5 * seconds;
+            if (this.actualRecoilDistance <= 0) {
+                this.actualRecoilDistance = 0;
+            }
+        }
+        this.bodySprite.offsetAfterRotation = new Vector(0, this.actualRecoilDistance);
+    };
+    Grenadier.prototype.draw = function (c) {
+        c.fillStyle = (this.target == gameState.playerA) ? 'red' : 'blue';
+        c.strokeStyle = 'black';
+        this.bodySprite.draw(c);
+    };
+    return Grenadier;
+}(SpawningEnemy));
+///<reference path="./Enemy.ts" />
+//HoveringEnemy.subclasses(Enemy);
+var HoveringEnemy = (function (_super) {
+    __extends(HoveringEnemy, _super);
+    function HoveringEnemy(type, center, radius, elasticity) {
+        var _this = 
+        // Enemy.prototype.constructor.call(this, type, elasticity);
+        _super.call(this, type, elasticity) || this;
+        _this.hitCircle = new Circle(center, radius);
+        return _this;
+    }
+    HoveringEnemy.prototype.getShape = function () {
+        return this.hitCircle;
+    };
+    return HoveringEnemy;
+}(Enemy));
+///<reference path="./HoveringEnemy.ts" />
+var HEADACHE_RADIUS = .15;
+var HEADACHE_ELASTICITY = 0;
+var HEADACHE_SPEED = 3;
+var HEADACHE_RANGE = 6;
+var HEADACHE_CLOUD_RADIUS = HEADACHE_RADIUS * 0.5;
+var HeadacheChain = (function () {
+    function HeadacheChain(center) {
+        this.points = [];
+        this.point = new Vector(center.x * gameScale, center.y * gameScale);
+        this.point.x += (Math.random() - 0.5) * HEADACHE_RADIUS;
+        this.point.y += (Math.random() - 0.5) * HEADACHE_RADIUS;
+        this.angle = Math.random() * Math.PI * 2;
+    }
+    HeadacheChain.prototype.tick = function (seconds, center) {
+        var speed = 600;
+        var dx = this.point.x - center.x * gameScale;
+        var dy = this.point.y - center.y * gameScale;
+        var percentFromCenter = Math.min(1, Math.sqrt(dx * dx + dy * dy) / HEADACHE_CLOUD_RADIUS);
+        var angleFromCenter = Math.atan2(dy, dx) - this.angle;
+        while (angleFromCenter < -Math.PI)
+            angleFromCenter += Math.PI * 2;
+        while (angleFromCenter > Math.PI)
+            angleFromCenter -= Math.PI * 2;
+        var percentHeading = (Math.PI - Math.abs(angleFromCenter)) / Math.PI;
+        var randomOffset = speed * (Math.random() - 0.5) * seconds;
+        this.angle += randomOffset * (1 - percentFromCenter * 0.8) + percentHeading * percentFromCenter * (angleFromCenter > 0 ? -2 : 2);
+        this.angle -= Math.floor(this.angle / (Math.PI * 2)) * Math.PI * 2;
+        this.point.x += speed * Math.cos(this.angle) * seconds;
+        this.point.y += speed * Math.sin(this.angle) * seconds;
+        this.points.push(new Vector(this.point.x, this.point.y));
+        if (this.points.length > 15)
+            this.points.shift();
+    };
+    HeadacheChain.prototype.draw = function (c) {
+        for (var i = 1; i < this.points.length; i++) {
+            var a = this.points[i - 1];
+            var b = this.points[i];
+            c.strokeStyle = 'rgba(0, 0, 0, ' + (i / this.points.length).toFixed(3) + ')';
+            c.beginPath();
+            c.moveTo(a.x / gameScale, a.y / gameScale);
+            c.lineTo(b.x / gameScale, b.y / gameScale);
+            c.stroke();
+        }
+    };
+    return HeadacheChain;
 }());
+// Headache.subclasses(HoveringEnemy);
+var Headache = (function (_super) {
+    __extends(Headache, _super);
+    function Headache(center, target) {
+        var _this = 
+        // HoveringEnemy.prototype.constructor.call(this, ENEMY_HEADACHE, center, HEADACHE_RADIUS, HEADACHE_ELASTICITY);
+        _super.call(this, ENEMY_HEADACHE, center, HEADACHE_RADIUS, HEADACHE_ELASTICITY) || this;
+        _this.target = target;
+        _this.isAttached = false;
+        _this.isTracking = false;
+        _this.restingOffset = new Vector(0, -10);
+        _this.chains = [];
+        for (var i = 0; i < 4; i++) {
+            _this.chains.push(new HeadacheChain(center));
+        }
+        return _this;
+    }
+    Headache.prototype.move = function (seconds) {
+        this.isTracking = false;
+        // If the headache isn't yet attached to a Player
+        if (!this.isAttached) {
+            if (this.target.isDead())
+                return new Vector(0, 0);
+            var delta = this.target.getCenter().sub(this.getCenter());
+            if (delta.lengthSquared() < (HEADACHE_RANGE * HEADACHE_RANGE) && !CollisionDetector.lineOfSightWorld(this.getCenter(), this.target.getCenter(), gameState.world)) {
+                // Seeks the top of the Player, not the center
+                delta.y += 0.45;
+                // Multiply be 3 so it attaches more easily if its close to a player
+                if (delta.lengthSquared() > (HEADACHE_SPEED * seconds * HEADACHE_SPEED * seconds * 3)) {
+                    this.isTracking = true;
+                    delta.normalize();
+                    delta = delta.mul(HEADACHE_SPEED * seconds);
+                }
+                else {
+                    this.isAttached = true;
+                }
+                return delta;
+            }
+        }
+        else {
+            // If a headache is attached to a dead player, it vanishes
+            if (this.target.isDead()) {
+                this.setDead(true);
+            }
+            // Otherwise it moves with the player
+            var delta = this.target.getCenter().add(new Vector(0, 0.45)).sub(this.getCenter());
+            // If player is crouching, adjust position
+            if (this.target.getCrouch() && this.target.isOnFloor()) {
+                delta.y -= 0.25;
+                if (this.target.facingRight)
+                    delta.x += 0.15;
+                else
+                    delta.x -= 0.15;
+            }
+            this.hitCircle.moveBy(delta);
+        }
+        return new Vector(0, 0);
+    };
+    Headache.prototype.reactToWorld = function () {
+        // Nothing happens
+    };
+    Headache.prototype.onDeath = function () {
+        gameState.incrementStat(STAT_ENEMY_DEATHS);
+        var position = this.getCenter();
+        // body
+        var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(0, 0.05));
+        var body = Particle().position(position).velocity(direction).radius(HEADACHE_RADIUS).bounces(3).elasticity(0.5).decay(0.01).circle().gravity(5);
+        if (this.target == gameState.playerA) {
+            body.color(1, 0, 0, 1);
+        }
+        else {
+            body.color(0, 0, 1, 1);
+        }
+        // black lines out from body
+        for (var i = 0; i < 50; ++i) {
+            var rotationAngle = randInRange(0, 2 * Math.PI);
+            var direction = Vector.fromAngle(rotationAngle).mul(randInRange(3, 5));
+            Particle().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(0, 0, 0, 1);
+        }
+    };
+    Headache.prototype.reactToPlayer = function (player) {
+        if (player === this.target) {
+            player.disableJump();
+        }
+        else if (player.getVelocity().y < 0 && player.getCenter().y > this.getCenter().y) {
+            // The other player must jump on the headache from above to kill it
+            this.setDead(true);
+        }
+    };
+    Headache.prototype.getTarget = function () {
+        return this.target === gameState.playerB;
+    };
+    Headache.prototype.afterTick = function (seconds) {
+        var center = this.getCenter();
+        for (var i = 0; i < this.chains.length; i++) {
+            this.chains[i].tick(seconds, center);
+        }
+    };
+    Headache.prototype.draw = function (c) {
+        var center = this.getCenter();
+        c.strokeStyle = 'black';
+        for (var i = 0; i < this.chains.length; i++) {
+            this.chains[i].draw(c);
+        }
+        c.fillStyle = (this.target == gameState.playerA) ? 'red' : 'blue';
+        c.beginPath();
+        c.arc(center.x, center.y, HEADACHE_RADIUS * 0.75, 0, Math.PI * 2, false);
+        c.fill();
+        c.stroke();
+    };
+    return Headache;
+}(HoveringEnemy));
+///<reference path="./Enemy.ts" />
+var HELP_SIGN_TEXT_WIDTH = 1.5;
+var HELP_SIGN_WIDTH = 0.76;
+var HELP_SIGN_HEIGHT = 0.76;
+//HelpSign.subclasses(Enemy);
+var HelpSign = (function (_super) {
+    __extends(HelpSign, _super);
+    function HelpSign(center, text, width) {
+        var _this = 
+        // Enemy.prototype.constructor.call(this, ENEMY_HELP_SIGN, 0);
+        _super.call(this, ENEMY_HELP_SIGN, 0) || this;
+        _this.hitBox = AABB.makeAABB(center, HELP_SIGN_WIDTH, HELP_SIGN_HEIGHT);
+        _this.textArray = null;
+        _this.text = text;
+        _this.drawText = false;
+        _this.timeSinceStart = 0;
+        if (width === undefined) {
+            _this.textWidth = HELP_SIGN_TEXT_WIDTH;
+        }
+        else {
+            _this.textWidth = width;
+        }
+        return _this;
+    }
+    // Private helper
+    // Splits up a string into an array of phrases based on the width of the sign
+    HelpSign.prototype.splitUpText = function (c, phrase) {
+        var words = phrase.split(" ");
+        var phraseArray = new Array();
+        var lastPhrase = "";
+        c.font = "12px sans serif";
+        var maxWidth = this.textWidth * gameScale;
+        var measure = 0;
+        for (var i = 0; i < words.length; ++i) {
+            var word = words[i];
+            measure = c.measureText(lastPhrase + word).width;
+            if (measure < maxWidth) {
+                lastPhrase += " " + word;
+            }
+            else {
+                if (lastPhrase.length > 0)
+                    phraseArray.push(lastPhrase);
+                lastPhrase = word;
+            }
+            if (i == words.length - 1) {
+                phraseArray.push(lastPhrase);
+                break;
+            }
+        }
+        return phraseArray;
+    };
+    HelpSign.prototype.getShape = function () { return this.hitBox; };
+    HelpSign.prototype.canCollide = function () { return false; };
+    HelpSign.prototype.tick = function (seconds) {
+        this.timeSinceStart += seconds;
+        this.drawText = false;
+        //Enemy.prototype.tick.call(this, seconds);
+        _super.prototype.tick.call(this, seconds);
+    };
+    HelpSign.prototype.reactToPlayer = function (player) {
+        this.drawText = true;
+    };
+    HelpSign.prototype.draw = function (c) {
+        // split up the text into an array the first call
+        if (this.textArray === null) {
+            this.textArray = this.splitUpText(c, this.text);
+        }
+        var pos = this.getCenter();
+        c.save();
+        c.textAlign = "center";
+        c.scale(1 / gameScale, -1 / gameScale);
+        c.save();
+        // Draw the sprite
+        c.font = "bold 34px sans-serif";
+        c.lineWidth = 1;
+        c.fillStyle = "yellow";
+        c.strokeStyle = "black";
+        c.translate(pos.x * gameScale, -pos.y * gameScale + 12);
+        var timeFloor = Math.floor(this.timeSinceStart);
+        /* 2 second period version
+        var scale = this.timeSinceStart;
+        if (timeFloor % 2 === 0) {
+            scale -= timeFloor;
+        } else {
+            scale -= 1 + timeFloor;
+        }
+        scale = Math.cos(scale * Math.PI) / 9 + 1; */
+        var scaleFactor = this.timeSinceStart - timeFloor;
+        scaleFactor = Math.cos(scaleFactor * 2 * Math.PI) / 16 + 1;
+        // Convert from 0-2 to 1 - 1/16 to 1 + 1/16
+        c.scale(scaleFactor, scaleFactor);
+        c.fillText("?", 0, 0);
+        c.strokeText("?", 0, 0);
+        c.restore();
+        // Draw the text in a text box
+        if (this.drawText) {
+            var fontSize = 13;
+            var xCenter = pos.x * gameScale;
+            var yCenter = -(pos.y + 0.5) * gameScale - (fontSize + 2) * this.textArray.length / 2;
+            drawTextBox(c, this.textArray, xCenter, yCenter, fontSize);
+        }
+        c.restore();
+    };
+    return HelpSign;
+}(Enemy));
+///<reference path="./RotatingEnemy.ts" />
+var HUNTER_BODY = 0;
+var HUNTER_CLAW1 = 1;
+var HUNTER_CLAW2 = 2;
+var HUNTER_RADIUS = 0.3;
+var HUNTER_ELASTICITY = 0.4;
+var HUNTER_CHASE_ACCEL = 14;
+var HUNTER_FLEE_ACCEL = 3;
+var HUNTER_FLEE_RANGE = 10;
+var HUNTER_CHASE_RANGE = 8;
+var HUNTER_LOOKAHEAD = 20;
+var STATE_IDLE = 0;
+var STATE_RED = 1;
+var STATE_BLUE = 2;
+var STATE_BOTH = 3;
+// Hunter.subclasses(RotatingEnemy);
+var Hunter = (function (_super) {
+    __extends(Hunter, _super);
+    function Hunter(center) {
+        var _this = 
+        //RotatingEnemy.prototype.constructor.call(this, ENEMY_HUNTER, center, HUNTER_RADIUS, 0, HUNTER_ELASTICITY);
+        _super.call(this, ENEMY_HUNTER, center, HUNTER_RADIUS, 0, HUNTER_ELASTICITY) || this;
+        _this.state = STATE_IDLE;
+        _this.acceleration = new Vector(0, 0);
+        _this.jawAngle = 0;
+        _this.sprites = [new Sprite(), new Sprite(), new Sprite()];
+        _this.state = STATE_IDLE;
+        _this.acceleration = new Vector(0, 0);
+        _this.jawAngle = 0;
+        _this.sprites = [new Sprite(), new Sprite(), new Sprite()];
+        _this.sprites[HUNTER_BODY].drawGeometry = function (c) {
+            c.beginPath();
+            c.arc(0, 0, 0.1, 0, 2 * Math.PI, false);
+            c.stroke();
+        };
+        _this.sprites[HUNTER_CLAW1].drawGeometry = _this.sprites[HUNTER_CLAW2].drawGeometry = function (c) {
+            c.beginPath();
+            c.moveTo(0, 0.1);
+            for (var i = 0; i <= 6; i++)
+                c.lineTo((i & 1) / 24, 0.2 + i * 0.05);
+            c.arc(0, 0.2, 0.3, 0.5 * Math.PI, -0.5 * Math.PI, true);
+            c.stroke();
+        };
+        _this.sprites[HUNTER_CLAW1].setParent(_this.sprites[HUNTER_BODY]);
+        _this.sprites[HUNTER_CLAW2].setParent(_this.sprites[HUNTER_BODY]);
+        _this.sprites[HUNTER_CLAW2].flip = true;
+        _this.sprites[HUNTER_BODY].offsetAfterRotation = new Vector(0, -0.2);
+        return _this;
+    }
+    Hunter.prototype.avoidsSpawn = function () { return true; };
+    ;
+    Hunter.prototype.calcAcceleration = function (target) {
+        return target.unit().sub(this.velocity.mul(3.0 / HUNTER_CHASE_ACCEL)).unit().mul(HUNTER_CHASE_ACCEL);
+    };
+    Hunter.prototype.playerInSight = function (target, distanceSquared) {
+        if (target.isDead())
+            return false;
+        var inSight = distanceSquared < (HUNTER_CHASE_RANGE * HUNTER_CHASE_RANGE);
+        inSight &= !CollisionDetector.lineOfSightWorld(this.getCenter(), target.getCenter(), gameState.world);
+        return inSight;
+    };
+    Hunter.prototype.move = function (seconds) {
+        // Relative player positions
+        var deltaA = gameState.playerA.getCenter().sub(this.getCenter());
+        var deltaB = gameState.playerB.getCenter().sub(this.getCenter());
+        // Projection positions with lookahead
+        var projectedA = deltaA.add(gameState.playerA.getVelocity().mul(HUNTER_LOOKAHEAD * seconds));
+        var projectedB = deltaB.add(gameState.playerB.getVelocity().mul(HUNTER_LOOKAHEAD * seconds));
+        // Squared distances
+        var distASquared = deltaA.lengthSquared();
+        var distBSquared = deltaB.lengthSquared();
+        // Checks if players are in sight
+        var inSightA = this.playerInSight(gameState.playerA, distASquared);
+        var inSightB = this.playerInSight(gameState.playerB, distBSquared);
+        // If player A is in sight
+        if (inSightA) {
+            // If both in sight
+            if (inSightB) {
+                // If they're on the same side of the Hunter, the Hunter will flee
+                if ((deltaA.dot(this.velocity) * deltaB.dot(this.velocity)) >= 0) {
+                    this.acceleration = deltaA.unit().add(deltaB.unit()).mul(-.5 * HUNTER_FLEE_ACCEL);
+                    this.target = null;
+                    this.state = STATE_BOTH;
+                }
+                else if (distASquared < distBSquared) {
+                    // Otherwise the hunter will chase after the closer of the two players
+                    this.acceleration = this.calcAcceleration(projectedA);
+                    this.target = gameState.playerA;
+                    this.state = STATE_RED;
+                }
+                else {
+                    this.acceleration = this.calcAcceleration(projectedB);
+                    this.target = gameState.playerB;
+                    this.state = STATE_BLUE;
+                }
+            }
+            else {
+                this.acceleration = this.calcAcceleration(projectedA);
+                this.target = gameState.playerA;
+                this.state = STATE_RED;
+            }
+        }
+        else if (inSightB) {
+            // If only player B in sight
+            this.acceleration = this.calcAcceleration(projectedB);
+            this.target = gameState.playerB;
+            this.state = STATE_BLUE;
+        }
+        else {
+            this.acceleration.x = this.acceleration.y = 0;
+            this.target = null;
+            this.state = STATE_IDLE;
+        }
+        // Damp the movement so it doesn't keep floating around
+        // Time independent version of multiplying by 0.99
+        this.velocity.inplaceMul(Math.pow(0.366032, seconds));
+        return this.accelerate(this.acceleration, seconds);
+    };
+    Hunter.prototype.afterTick = function (seconds) {
+        var position = this.getCenter();
+        this.sprites[HUNTER_BODY].offsetBeforeRotation = position;
+        if (this.target) {
+            var currentAngle = this.sprites[HUNTER_BODY].angle;
+            var targetAngle = this.target.getCenter().sub(position).atan2() - Math.PI / 2;
+            this.sprites[HUNTER_BODY].angle = adjustAngleToTarget(currentAngle, targetAngle, Math.PI * seconds);
+        }
+        var targetJawAngle = this.target ? -0.2 : 0;
+        this.jawAngle = adjustAngleToTarget(this.jawAngle, targetJawAngle, 0.4 * seconds);
+        this.sprites[HUNTER_CLAW1].angle = this.jawAngle;
+        this.sprites[HUNTER_CLAW2].angle = this.jawAngle;
+    };
+    Hunter.prototype.draw = function (c) {
+        c.fillStyle = (this.target == gameState.playerA) ? 'red' : 'blue';
+        c.strokeStyle = 'black';
+        if (this.state != STATE_IDLE) {
+            var angle = this.sprites[HUNTER_BODY].angle + Math.PI / 2;
+            var fromEye = Vector.fromAngle(angle);
+            var eye = this.getCenter().sub(fromEye.mul(0.2));
+            if (this.state == STATE_RED) {
+                c.fillStyle = 'red';
+                c.beginPath();
+                c.arc(eye.x, eye.y, 0.1, 0, 2 * Math.PI, false);
+                c.fill();
+            }
+            else if (this.state == STATE_BLUE) {
+                c.fillStyle = 'blue';
+                c.beginPath();
+                c.arc(eye.x, eye.y, 0.1, 0, 2 * Math.PI, false);
+                c.fill();
+            }
+            else {
+                c.fillStyle = 'red';
+                c.beginPath();
+                c.arc(eye.x, eye.y, 0.1, angle, angle + Math.PI, false);
+                c.fill();
+                c.fillStyle = 'blue';
+                c.beginPath();
+                c.arc(eye.x, eye.y, 0.1, angle + Math.PI, angle + 2 * Math.PI, false);
+                c.fill();
+                c.beginPath();
+                c.moveTo(eye.x - fromEye.x * 0.1, eye.y - fromEye.y * 0.1);
+                c.lineTo(eye.x + fromEye.x * 0.1, eye.y + fromEye.y * 0.1);
+                c.stroke();
+            }
+        }
+        this.sprites[HUNTER_BODY].draw(c);
+    };
+    return Hunter;
+}(RotatingEnemy));
+///<reference path="./SpawningEnemy.ts" />
+var JET_STREAM_WIDTH = 0.4;
+var JET_STREAM_HEIGHT = 0.4;
+var JET_STREAM_SHOOT_FREQ = 0.2;
+var NUM_BARRELS = 3;
+var JET_STREAM_SPRITE_A = 0;
+var JET_STREAM_SPRITE_B = 1;
+// JetStream.subclasses(SpawningEnemy);
+var JetStream = (function (_super) {
+    __extends(JetStream, _super);
+    function JetStream(center, direction) {
+        var _this = 
+        //SpawningEnemy.prototype.constructor.call(this, ENEMY_JET_STREAM, center, JET_STREAM_WIDTH, JET_STREAM_HEIGHT, 0, JET_STREAM_SHOOT_FREQ, 0);
+        _super.call(this, ENEMY_JET_STREAM, center, JET_STREAM_WIDTH, JET_STREAM_HEIGHT, 0, JET_STREAM_SHOOT_FREQ, 0) || this;
+        _this.direction = direction;
+        _this.reloadAnimation = 0;
+        _this.sprites = [new Sprite(), new Sprite()];
+        _this.sprites[JET_STREAM_SPRITE_A].drawGeometry = _this.sprites[JET_STREAM_SPRITE_B].drawGeometry = function (c) {
+            c.strokeStyle = 'black';
+            c.beginPath();
+            for (var i = 0; i < NUM_BARRELS; i++) {
+                var angle = i * (2 * Math.PI / NUM_BARRELS);
+                c.moveTo(0, 0);
+                c.lineTo(0.2 * Math.cos(angle), 0.2 * Math.sin(angle));
+            }
+            c.stroke();
+        };
+        return _this;
+    }
+    JetStream.prototype.canCollide = function () { return false; };
+    JetStream.prototype.spawn = function () {
+        gameState.addEnemy(new RiotBullet(this.getCenter(), this.direction), this.getCenter());
+        return true;
+    };
+    JetStream.prototype.afterTick = function (seconds) {
+        this.reloadAnimation += seconds * (0.5 / JET_STREAM_SHOOT_FREQ);
+        var angle = this.reloadAnimation * (2 * Math.PI / NUM_BARRELS);
+        var targetAngle = this.direction - Math.PI / 2;
+        var bodyOffset = Vector.fromAngle(targetAngle).mul(0.2);
+        var position = this.getCenter();
+        this.sprites[JET_STREAM_SPRITE_A].angle = targetAngle + angle;
+        this.sprites[JET_STREAM_SPRITE_B].angle = targetAngle - angle;
+        this.sprites[JET_STREAM_SPRITE_A].offsetBeforeRotation = position.sub(bodyOffset);
+        this.sprites[JET_STREAM_SPRITE_B].offsetBeforeRotation = position.add(bodyOffset);
+        // adjust for even NUM_BARRELS
+        if (!(NUM_BARRELS & 1))
+            this.sprites[JET_STREAM_SPRITE_B].angle += Math.PI / NUM_BARRELS;
+    };
+    JetStream.prototype.draw = function (c) {
+        this.sprites[JET_STREAM_SPRITE_A].draw(c);
+        this.sprites[JET_STREAM_SPRITE_B].draw(c);
+        var angle = this.reloadAnimation * (2 * Math.PI / NUM_BARRELS);
+        var targetAngle = this.direction - Math.PI / 2;
+        var position = this.getCenter();
+        var bodyOffset = Vector.fromAngle(targetAngle).mul(0.2);
+        c.fillStyle = 'yellow';
+        c.strokeStyle = 'black';
+        for (var side = -1; side <= 1; side += 2) {
+            for (var i = 0; i < NUM_BARRELS; i++) {
+                var theta = i * (2 * Math.PI / NUM_BARRELS) - side * angle;
+                var reload = (this.reloadAnimation - i * side) / NUM_BARRELS + (side == 1) * 0.5;
+                // adjust for even NUM_BARRELS
+                if (side == 1 && !(NUM_BARRELS & 1)) {
+                    theta += Math.PI / NUM_BARRELS;
+                    reload -= 0.5 / NUM_BARRELS;
+                }
+                reload -= Math.floor(reload);
+                var pos = position.add(bodyOffset.mul(side)).add(bodyOffset.rotate(theta));
+                c.beginPath();
+                c.arc(pos.x, pos.y, 0.1 * reload, 0, 2 * Math.PI, false);
+                c.fill();
+                c.stroke();
+            }
+        }
+    };
+    return JetStream;
+}(SpawningEnemy));
+///<reference path="./FreefallEnemy.ts" />
+var LASER_RADIUS = .15;
+var LASER_SPEED = 5;
+var LASER_BOUNCES = 0;
+//Laser.subclasses(FreefallEnemy);
+var Laser = (function (_super) {
+    __extends(Laser, _super);
+    function Laser(center, direction) {
+        var _this = 
+        // FreefallEnemy.prototype.constructor.call(this, ENEMY_LASER, center, LASER_RADIUS, 1);
+        _super.call(this, ENEMY_LASER, center, LASER_RADIUS, 1) || this;
+        _this.bouncesLeft = LASER_BOUNCES;
+        _this.velocity = new Vector(LASER_SPEED * Math.cos(direction), LASER_SPEED * Math.sin(direction));
+        return _this;
+    }
+    Laser.prototype.move = function (seconds) {
+        return this.velocity.mul(seconds);
+    };
+    Laser.prototype.reactToWorld = function (contact) {
+        if (this.bouncesLeft <= 0) {
+            this.setDead(true);
+            var position = this.getCenter();
+            for (var i = 0; i < 20; ++i) {
+                var angle = randInRange(0, 2 * Math.PI);
+                var direction = Vector.fromAngle(angle);
+                direction = direction.mul(randInRange(0.5, 5));
+                Particle().position(position).velocity(direction).angle(angle).radius(0.1).bounces(1).elasticity(1).decay(0.01).gravity(0).color(1, 1, 1, 1).line();
+            }
+        }
+        else {
+            --this.bouncesLeft;
+        }
+    };
+    Laser.prototype.draw = function (c) {
+        var heading = this.velocity.unit().mul(LASER_RADIUS);
+        var segment = new Segment(this.getCenter().sub(heading), this.getCenter().add(heading));
+        c.lineWidth = .07;
+        c.strokeStyle = 'white';
+        segment.draw(c);
+        c.lineWidth = .02;
+    };
+    return Laser;
+}(FreefallEnemy));
+var MULTI_GUN_WIDTH = .5;
+var MULTI_GUN_HEIGHT = .5;
+var MULTI_GUN_SHOOT_FREQ = 1.25;
+var MULTI_GUN_RANGE = 8;
+// MultiGun.subclasses(SpawningEnemy);
+var MultiGun = (function (_super) {
+    __extends(MultiGun, _super);
+    function MultiGun(center) {
+        var _this = 
+        // SpawningEnemy.prototype.constructor.call(this, ENEMY_MULTI_GUN, center, MULTI_GUN_WIDTH, MULTI_GUN_HEIGHT, 0, MULTI_GUN_SHOOT_FREQ, 0);
+        _super.call(this, ENEMY_MULTI_GUN, center, MULTI_GUN_WIDTH, MULTI_GUN_HEIGHT, 0, MULTI_GUN_SHOOT_FREQ, 0) || this;
+        _this.redGun = null;
+        _this.blueGun = null;
+        _this.gunFired = new Array(4);
+        _this.gunPositions = new Array(4);
+        //this.redGun = null;
+        //this.blueGun = null;
+        //this.gunFired = new Array(4);
+        //this.gunPositions = new Array(4);
+        var pos = _this.getCenter();
+        _this.redGun = new Vector(pos.x, pos.y);
+        _this.blueGun = new Vector(pos.x, pos.y);
+        _this.gunPositions[0] = _this.hitBox.lowerLeft;
+        _this.gunPositions[1] = new Vector(_this.hitBox.getRight(), _this.hitBox.getBottom());
+        _this.gunPositions[2] = new Vector(_this.hitBox.getLeft(), _this.hitBox.getTop());
+        _this.gunPositions[3] = _this.hitBox.lowerLeft.add(new Vector(_this.hitBox.getWidth(), _this.hitBox.getHeight()));
+        return _this;
+    }
+    MultiGun.prototype.canCollide = function () {
+        return false;
+    };
+    MultiGun.prototype.vectorToIndex = function (v) {
+        var indexX = (v.x < 0) ? 0 : 1;
+        var indexY = (v.y < 0) ? 0 : 2;
+        return indexX + indexY;
+    };
+    MultiGun.prototype.spawn = function () {
+        for (var i = 0; i < 4; ++i) {
+            this.gunFired[i] = false;
+        }
+        var fired = false;
+        for (var i = 0; i < 2; ++i) {
+            var target = gameState.getPlayer(i);
+            var index = this.vectorToIndex(target.getCenter().sub(this.getCenter()));
+            var relPosition = target.getCenter().sub(this.gunPositions[index]);
+            // Player must be alive and in range to be shot
+            if (!target.isDead() && relPosition.lengthSquared() < (MULTI_GUN_RANGE * MULTI_GUN_RANGE) &&
+                !CollisionDetector.lineOfSightWorld(this.gunPositions[index], target.getCenter(), gameState.world)) {
+                if (!this.gunFired[index]) {
+                    gameState.addEnemy(new Laser(this.gunPositions[index], relPosition.atan2()), this.gunPositions[index]);
+                    this.gunFired[index] = true;
+                    fired = true;
+                }
+            }
+        }
+        return fired;
+    };
+    MultiGun.prototype.afterTick = function (seconds) {
+        var position = this.getCenter();
+        var redGunTarget = this.gunPositions[this.vectorToIndex(gameState.playerA.getCenter().sub(position))];
+        var blueGunTarget = this.gunPositions[this.vectorToIndex(gameState.playerB.getCenter().sub(position))];
+        var speed = 4 * seconds;
+        this.redGun.adjustTowardsTarget(redGunTarget, speed);
+        this.blueGun.adjustTowardsTarget(blueGunTarget, speed);
+        //bodySprite.SetOffsetBeforeRotation(position.x, position.y);
+    };
+    MultiGun.prototype.draw = function (c) {
+        // Draw the red and/or blue circles
+        if (this.redGun.eq(this.blueGun) && !gameState.playerA.isDead() && !gameState.playerB.isDead()) {
+            var angle = (this.redGun.sub(this.getCenter())).atan2();
+            c.fillStyle = "rgb(205, 0, 0)";
+            c.beginPath();
+            c.arc(this.redGun.x, this.redGun.y, 0.1, angle, angle + Math.PI, false);
+            c.fill();
+            c.fillStyle = "rgb(0, 0, 255)";
+            c.beginPath();
+            c.arc(this.blueGun.x, this.blueGun.y, 0.1, angle + Math.PI, angle + 2 * Math.PI, false);
+            c.fill();
+        }
+        else {
+            if (!gameState.playerA.isDead()) {
+                c.fillStyle = "rgb(205, 0, 0)";
+                c.beginPath();
+                c.arc(this.redGun.x, this.redGun.y, 0.1, 0, 2 * Math.PI, false);
+                c.fill();
+            }
+            if (!gameState.playerB.isDead()) {
+                c.fillStyle = "rgb(0, 0, 255)";
+                c.beginPath();
+                c.arc(this.blueGun.x, this.blueGun.y, 0.1, 0, 2 * Math.PI, false);
+                c.fill();
+            }
+        }
+        // Draw the body
+        c.strokeStyle = "black";
+        c.beginPath();
+        // Bottom horizontal
+        c.moveTo(this.gunPositions[0].x, this.gunPositions[0].y + 0.1);
+        c.lineTo(this.gunPositions[1].x, this.gunPositions[1].y + 0.1);
+        c.moveTo(this.gunPositions[0].x, this.gunPositions[0].y - 0.1);
+        c.lineTo(this.gunPositions[1].x, this.gunPositions[1].y - 0.1);
+        // Top horizontal
+        c.moveTo(this.gunPositions[2].x, this.gunPositions[2].y - 0.1);
+        c.lineTo(this.gunPositions[3].x, this.gunPositions[3].y - 0.1);
+        c.moveTo(this.gunPositions[2].x, this.gunPositions[2].y + 0.1);
+        c.lineTo(this.gunPositions[3].x, this.gunPositions[3].y + 0.1);
+        // Left vertical
+        c.moveTo(this.gunPositions[0].x + 0.1, this.gunPositions[0].y);
+        c.lineTo(this.gunPositions[2].x + 0.1, this.gunPositions[2].y);
+        c.moveTo(this.gunPositions[0].x - 0.1, this.gunPositions[0].y);
+        c.lineTo(this.gunPositions[2].x - 0.1, this.gunPositions[2].y);
+        // Right vertical
+        c.moveTo(this.gunPositions[1].x - 0.1, this.gunPositions[1].y);
+        c.lineTo(this.gunPositions[3].x - 0.1, this.gunPositions[3].y);
+        c.moveTo(this.gunPositions[1].x + 0.1, this.gunPositions[1].y);
+        c.lineTo(this.gunPositions[3].x + 0.1, this.gunPositions[3].y);
+        c.stroke();
+        // Draw the gun holders
+        c.beginPath();
+        c.arc(this.gunPositions[0].x, this.gunPositions[0].y, 0.1, 0, 2 * Math.PI, false);
+        c.stroke();
+        c.beginPath();
+        c.arc(this.gunPositions[1].x, this.gunPositions[1].y, 0.1, 0, 2 * Math.PI, false);
+        c.stroke();
+        c.beginPath();
+        c.arc(this.gunPositions[2].x, this.gunPositions[2].y, 0.1, 0, 2 * Math.PI, false);
+        c.stroke();
+        c.beginPath();
+        c.arc(this.gunPositions[3].x, this.gunPositions[3].y, 0.1, 0, 2 * Math.PI, false);
+        c.stroke();
+    };
+    return MultiGun;
+}(SpawningEnemy));
 ///<reference path="../util/vector.ts" /> 
 // Particles are statically allocated in a big array so that creating a
 // new particle doesn't need to allocate any memory (for speed reasons).
@@ -1932,6 +3682,463 @@ var Player = (function (_super) {
     };
     return Player;
 }(Entity));
+var RIOT_BULLET_RADIUS = 0.1;
+var RIOT_BULLET_SPEED = 7;
+// RiotBullet.subclasses(FreefallEnemy);
+var RiotBullet = (function (_super) {
+    __extends(RiotBullet, _super);
+    function RiotBullet(center, direction) {
+        var _this = 
+        // FreefallEnemy.prototype.constructor.call(this, ENEMY_RIOT_BULLET, center, RIOT_BULLET_RADIUS, 0);
+        _super.call(this, ENEMY_RIOT_BULLET, center, RIOT_BULLET_RADIUS, 0) || this;
+        _this.velocity = new Vector(RIOT_BULLET_SPEED * Math.cos(direction), RIOT_BULLET_SPEED * Math.sin(direction));
+        return _this;
+    }
+    RiotBullet.prototype.reactToPlayer = function (player) {
+        if (!this.isDead()) {
+            // the delta-velocity applied to the player
+            var deltaVelocity = this.velocity.mul(0.75);
+            player.addToVelocity(deltaVelocity);
+        }
+        this.setDead(true);
+    };
+    RiotBullet.prototype.onDeath = function () {
+        var position = this.getCenter();
+        // smoke
+        for (var i = 0; i < 5; ++i) {
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
+            direction = this.velocity.add(direction.mul(randInRange(0.1, 1)));
+            Particle().position(position).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0005, 0.005).expand(1.0, 1.2).color(0.9, 0.9, 0, 1).mixColor(1, 1, 0, 1).circle();
+        }
+        Enemy.prototype.onDeath.call(this);
+    };
+    RiotBullet.prototype.draw = function (c) {
+        var pos = this.getCenter();
+        c.strokeStyle = 'black';
+        c.fillStyle = 'yellow';
+        c.beginPath();
+        c.arc(pos.x, pos.y, RIOT_BULLET_RADIUS, 0, 2 * Math.PI, false);
+        c.fill();
+        c.stroke();
+    };
+    return RiotBullet;
+}(FreefallEnemy));
+var SHOCK_HAWK_RADIUS = 0.3;
+var SHOCK_HAWK_ACCEL = 6;
+var SHOCK_HAWK_DECEL = 0.8;
+var SHOCK_HAWK_RANGE = 10;
+// ShockHawk.subclasses(HoveringEnemy);
+var ShockHawk = (function (_super) {
+    __extends(ShockHawk, _super);
+    function ShockHawk(center, target) {
+        var _this = 
+        // HoveringEnemy.prototype.constructor.call(this, ENEMY_SHOCK_HAWK, center, SHOCK_HAWK_RADIUS, 0);
+        _super.call(this, ENEMY_SHOCK_HAWK, center, SHOCK_HAWK_RADIUS, 0) || this;
+        _this.chasing = false;
+        _this.target = target;
+        _this.chasing = false;
+        _this.bodySprite = new Sprite();
+        _this.bodySprite.drawGeometry = function (c) {
+            // draw solid center
+            c.beginPath();
+            c.moveTo(0, -0.15);
+            c.lineTo(0.05, -0.1);
+            c.lineTo(0, 0.1);
+            c.lineTo(-0.05, -0.1);
+            c.fill();
+            // draw outlines
+            c.beginPath();
+            for (var scale = -1; scale <= 1; scale += 2) {
+                c.moveTo(0, -0.3);
+                c.lineTo(scale * 0.05, -0.2);
+                c.lineTo(scale * 0.1, -0.225);
+                c.lineTo(scale * 0.1, -0.275);
+                c.lineTo(scale * 0.15, -0.175);
+                c.lineTo(0, 0.3);
+                c.moveTo(0, -0.15);
+                c.lineTo(scale * 0.05, -0.1);
+                c.lineTo(0, 0.1);
+            }
+            c.stroke();
+        };
+        return _this;
+    }
+    ShockHawk.prototype.getTarget = function () { return target === gameState.playerB; };
+    ShockHawk.prototype.setTarget = function (player) { this.target = player; };
+    ShockHawk.prototype.avoidsSpawn = function () {
+        if (this.chasing) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    };
+    ShockHawk.prototype.move = function (seconds) {
+        // Time independent version of multiplying by 0.998
+        // solved x^0.01 = 0.998 for x very precisely using wolfram alpha
+        this.velocity.inplaceMul(Math.pow(0.8185668046884278157989334904543296243702023236680159019579, seconds));
+        if (!this.target || this.target.isDead()) {
+            this.chasing = false;
+            return this.accelerate(this.velocity.mul(-SHOCK_HAWK_DECEL), seconds);
+        }
+        var relTargetPos = this.target.getCenter().sub(this.getCenter());
+        if (relTargetPos.lengthSquared() > (SHOCK_HAWK_RANGE * SHOCK_HAWK_RANGE)) {
+            this.chasing = false;
+            return this.accelerate(this.velocity.mul(-SHOCK_HAWK_DECEL), seconds);
+        }
+        this.chasing = true;
+        relTargetPos.normalize();
+        var accel = relTargetPos.mul(SHOCK_HAWK_ACCEL);
+        return this.accelerate(accel, seconds);
+    };
+    ShockHawk.prototype.onDeath = function () {
+        gameState.incrementStat(STAT_ENEMY_DEATHS);
+    };
+    ShockHawk.prototype.afterTick = function (seconds) {
+        var position = this.getCenter();
+        this.bodySprite.offsetBeforeRotation = position;
+        if (!this.target.isDead()) {
+            this.bodySprite.angle = this.target.getCenter().sub(position).atan2() - Math.PI / 2;
+        }
+    };
+    ShockHawk.prototype.draw = function (c) {
+        c.fillStyle = (this.target == gameState.playerA) ? 'red' : 'blue';
+        c.strokeStyle = 'black';
+        this.bodySprite.draw(c);
+    };
+    return ShockHawk;
+}(HoveringEnemy));
+var SPIKE_BALL_RADIUS = 0.2;
+function makeDrawSpikes(count) {
+    var radii = [];
+    for (var i = 0; i < count; i++) {
+        radii.push(randInRange(0.5, 1.5));
+    }
+    return function (c) {
+        c.strokeStyle = 'black';
+        c.beginPath();
+        for (var i = 0; i < count; i++) {
+            var angle = i * (2 * Math.PI / count);
+            var radius = SPIKE_BALL_RADIUS * radii[i];
+            c.moveTo(0, 0);
+            c.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+        }
+        c.stroke();
+    };
+}
+// SpikeBall.subclasses(Enemy);
+var SpikeBall = (function (_super) {
+    __extends(SpikeBall, _super);
+    function SpikeBall(center) {
+        var _this = 
+        //Enemy.prototype.constructor.call(this, ENEMY_SPIKE_BALL, 0);
+        _super.call(this, ENEMY_SPIKE_BALL, 0) || this;
+        _this.sprites = [new Sprite(), new Sprite(), new Sprite()];
+        _this.hitCircle = new Circle(center, SPIKE_BALL_RADIUS);
+        _this.sprites = [new Sprite(), new Sprite(), new Sprite()];
+        _this.sprites[0].drawGeometry = makeDrawSpikes(11);
+        _this.sprites[1].drawGeometry = makeDrawSpikes(13);
+        _this.sprites[2].drawGeometry = makeDrawSpikes(7);
+        _this.sprites[1].setParent(_this.sprites[0]);
+        _this.sprites[2].setParent(_this.sprites[0]);
+        _this.sprites[0].angle = randInRange(0, 2 * Math.PI);
+        _this.sprites[1].angle = randInRange(0, 2 * Math.PI);
+        _this.sprites[2].angle = randInRange(0, 2 * Math.PI);
+        return _this;
+    }
+    SpikeBall.prototype.getShape = function () { return this.hitCircle; };
+    SpikeBall.prototype.canCollide = function () { return false; };
+    SpikeBall.prototype.afterTick = function (seconds) {
+        this.sprites[0].offsetBeforeRotation = this.getCenter();
+        this.sprites[0].angle -= seconds * (25 * Math.PI / 180);
+        this.sprites[1].angle += seconds * (65 * Math.PI / 180);
+        this.sprites[2].angle += seconds * (15 * Math.PI / 180);
+    };
+    SpikeBall.prototype.draw = function (c) {
+        this.sprites[0].draw(c);
+    };
+    return SpikeBall;
+}(Enemy));
+var STALACBAT_RADIUS = 0.2;
+var STALACBAT_SPEED = 2;
+var STALACBAT_SPRITE_BODY = 0;
+var STALACBAT_SPRITE_LEFT_WING = 1;
+var STALACBAT_SPRITE_RIGHT_WING = 2;
+// Stalacbat.subclasses(FreefallEnemy);
+var Stalacbat = (function (_super) {
+    __extends(Stalacbat, _super);
+    function Stalacbat(center, target) {
+        var _this = 
+        //FreefallEnemy.prototype.constructor.call(this, ENEMY_STALACBAT, center, STALACBAT_RADIUS, 0);
+        _super.call(this, ENEMY_STALACBAT, center, STALACBAT_RADIUS, 0) || this;
+        _this.target = target;
+        _this.isFalling = false;
+        _this.sprites = [new Sprite(), new Sprite(), new Sprite()];
+        // Draw circle for body
+        _this.sprites[STALACBAT_SPRITE_BODY].drawGeometry = function (c) {
+            c.strokeStyle = 'black';
+            c.beginPath();
+            c.arc(0, 0, 0.1, 0, 2 * Math.PI, false);
+            c.stroke();
+            c.fill();
+        };
+        // Draw the two wings 
+        _this.sprites[STALACBAT_SPRITE_LEFT_WING].drawGeometry = _this.sprites[STALACBAT_SPRITE_RIGHT_WING].drawGeometry = function (c) {
+            c.strokeStyle = 'black';
+            c.beginPath();
+            c.arc(0, 0, 0.2, 0, Math.PI / 2, false);
+            c.arc(0, 0, 0.15, Math.PI / 2, 0, true);
+            c.stroke();
+            c.beginPath();
+            c.moveTo(0.07, 0.07);
+            c.lineTo(0.1, 0.1);
+            c.stroke();
+        };
+        _this.sprites[STALACBAT_SPRITE_LEFT_WING].setParent(_this.sprites[STALACBAT_SPRITE_BODY]);
+        _this.sprites[STALACBAT_SPRITE_RIGHT_WING].setParent(_this.sprites[STALACBAT_SPRITE_BODY]);
+        return _this;
+    }
+    // Falls when the target is directly beneat it
+    Stalacbat.prototype.move = function (seconds) {
+        if (this.isFalling) {
+            return FreefallEnemy.prototype.move.call(this, seconds);
+        }
+        else if (this.target !== null && !this.target.isDead()) {
+            var playerPos = this.target.getCenter();
+            var pos = this.getCenter();
+            if ((Math.abs(playerPos.x - pos.x) < 0.1) && (playerPos.y < pos.y)) {
+                if (!CollisionDetector.lineOfSightWorld(pos, playerPos, gameState.world)) {
+                    this.isFalling = true;
+                    return FreefallEnemy.prototype.move.call(this, seconds);
+                }
+            }
+        }
+        return new Vector(0, 0);
+    };
+    Stalacbat.prototype.getTarget = function () {
+        return this.target === gameState.playerB;
+    };
+    Stalacbat.prototype.afterTick = function (seconds) {
+        var percent = this.velocity.y * -0.25;
+        if (percent > 1) {
+            percent = 1;
+        }
+        var position = this.getCenter();
+        this.sprites[STALACBAT_SPRITE_BODY].offsetBeforeRotation = new Vector(position.x, position.y + 0.1 - 0.2 * percent);
+        var angle = percent * Math.PI / 2;
+        this.sprites[STALACBAT_SPRITE_LEFT_WING].angle = Math.PI - angle;
+        this.sprites[STALACBAT_SPRITE_RIGHT_WING].angle = angle - Math.PI / 2;
+    };
+    Stalacbat.prototype.onDeath = function () {
+        gameState.incrementStat(STAT_ENEMY_DEATHS);
+        var isRed = (this.target === gameState.playerA) ? 0.8 : 0;
+        var isBlue = (this.target === gameState.playerB) ? 1 : 0;
+        var position = this.getCenter();
+        for (var i = 0; i < 15; ++i) {
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(5, 10));
+            Particle().position(position).velocity(direction).radius(0.2).bounces(3).decay(0.01).elasticity(0.5).color(isRed, 0, isBlue, 1).triangle();
+        }
+    };
+    Stalacbat.prototype.draw = function (c) {
+        // Draw the colored "eye"
+        if (this.target === gameState.playerA) {
+            c.fillStyle = 'red';
+        }
+        else {
+            c.fillStyle = 'blue';
+        }
+        // Draw the black wings
+        this.sprites[STALACBAT_SPRITE_BODY].draw(c);
+    };
+    return Stalacbat;
+}(FreefallEnemy));
+///<reference path="./Enemy.ts" />
+//WalkingEnemy.subclasses(Enemy);
+var WalkingEnemy = (function (_super) {
+    __extends(WalkingEnemy, _super);
+    function WalkingEnemy(type, center, radius, elasticity) {
+        var _this = 
+        // Enemy.prototype.constructor.call(this, type, elasticity);
+        _super.call(this, type, elasticity) || this;
+        _this.hitCircle = new Circle(center, radius);
+        return _this;
+    }
+    WalkingEnemy.prototype.getShape = function () {
+        return this.hitCircle;
+    };
+    WalkingEnemy.prototype.move = function (seconds) {
+        return this.velocity.mul(seconds);
+    };
+    return WalkingEnemy;
+}(Enemy));
+///<reference path="./WalkingEnemy.ts" />
+var WALL_CRAWLER_SPEED = 1;
+var WALL_CRAWLER_RADIUS = 0.25;
+var PULL_FACTOR = 0.9;
+var PUSH_FACTOR = 0.11;
+// WallCrawler.subclasses(WalkingEnemy);
+var WallCrawler = (function (_super) {
+    __extends(WallCrawler, _super);
+    function WallCrawler(center, direction) {
+        var _this = 
+        //WalkingEnemy.prototype.constructor.call(this, ENEMY_CRAWLER, center, WALL_CRAWLER_RADIUS, 0);
+        _super.call(this, ENEMY_CRAWLER, center, WALL_CRAWLER_RADIUS, 0) || this;
+        _this.firstTick = true;
+        _this.clockwise = false;
+        _this.firstTick = true;
+        _this.clockwise = false;
+        _this.velocity = new Vector(Math.cos(direction), Math.sin(direction));
+        _this.bodySprite = new Sprite();
+        _this.bodySprite.drawGeometry = function (c) {
+            var space = 0.15;
+            c.fillStyle = 'black';
+            c.strokeStyle = 'black';
+            c.beginPath();
+            c.arc(0, 0, 0.25, Math.PI * 0.25 + space, Math.PI * 0.75 - space, false);
+            c.stroke();
+            c.beginPath();
+            c.arc(0, 0, 0.25, Math.PI * 0.75 + space, Math.PI * 1.25 - space, false);
+            c.stroke();
+            c.beginPath();
+            c.arc(0, 0, 0.25, Math.PI * 1.25 + space, Math.PI * 1.75 - space, false);
+            c.stroke();
+            c.beginPath();
+            c.arc(0, 0, 0.25, Math.PI * 1.75 + space, Math.PI * 2.25 - space, false);
+            c.stroke();
+            c.beginPath();
+            c.arc(0, 0, 0.15, 0, 2 * Math.PI, false);
+            c.stroke();
+            c.beginPath();
+            c.moveTo(0.15, 0);
+            c.lineTo(0.25, 0);
+            c.moveTo(0, 0.15);
+            c.lineTo(0, 0.25);
+            c.moveTo(-0.15, 0);
+            c.lineTo(-0.25, 0);
+            c.moveTo(0, -0.15);
+            c.lineTo(0, -0.25);
+            c.stroke();
+            c.beginPath();
+            c.arc(0, 0, 0.05, 0, 2 * Math.PI, false);
+            c.fill();
+        };
+        return _this;
+    }
+    // Rotates about the closest point in the world
+    WallCrawler.prototype.move = function (seconds) {
+        var ref_shapePoint = {};
+        var ref_worldPoint = {};
+        var closestPointDist = CollisionDetector.closestToEntityWorld(this, 2, ref_shapePoint, ref_worldPoint, gameState.world);
+        if (closestPointDist < Number.POSITIVE_INFINITY) {
+            var delta = this.getCenter().sub(ref_worldPoint.ref);
+            // Make sure it doesn't get too far away or get stuck in corners
+            var flip = delta.flip();
+            if (this.firstTick) {
+                if (this.velocity.dot(flip) < 0)
+                    this.clockwise = true;
+                else
+                    this.clockwise = false;
+                this.firstTick = false;
+            }
+            if (delta.lengthSquared() > (WALL_CRAWLER_RADIUS * WALL_CRAWLER_RADIUS * 1.1)) {
+                // Pull the crawler towards the wall
+                if (this.clockwise)
+                    this.velocity = flip.mul(-1).sub(delta.mul(PULL_FACTOR));
+                else
+                    this.velocity = flip.sub(delta.mul(PULL_FACTOR));
+            }
+            else {
+                // Push the crawler away from the wall
+                if (this.clockwise)
+                    this.velocity = flip.mul(-1).add(delta.mul(PUSH_FACTOR));
+                else
+                    this.velocity = flip.add(delta.mul(PUSH_FACTOR));
+            }
+            this.velocity.normalize();
+        }
+        return this.velocity.mul(WALL_CRAWLER_SPEED * seconds);
+    };
+    WallCrawler.prototype.afterTick = function (seconds) {
+        var deltaAngle = WALL_CRAWLER_SPEED / WALL_CRAWLER_RADIUS * seconds;
+        this.bodySprite.offsetBeforeRotation = this.getCenter();
+        if (this.clockwise)
+            this.bodySprite.angle += deltaAngle;
+        else
+            this.bodySprite.angle -= deltaAngle;
+    };
+    WallCrawler.prototype.draw = function (c) {
+        this.bodySprite.draw(c);
+    };
+    return WallCrawler;
+}(WalkingEnemy));
+///<reference path="./WalkingEnemy.ts" />
+var WHEELIGATOR_RADIUS = 0.3;
+var WHEELIGATOR_SPEED = 3;
+var WHEELIGATOR_ELASTICITY = 1;
+var WHEELIGATOR_FLOOR_ELASTICITY = 0.3;
+//Wheeligator.subclasses(WalkingEnemy);
+var Wheeligator = (function (_super) {
+    __extends(Wheeligator, _super);
+    function Wheeligator(center, angle) {
+        var _this = 
+        //WalkingEnemy.prototype.constructor.call(this, ENEMY_WHEELIGATOR, center, WHEELIGATOR_RADIUS, WHEELIGATOR_ELASTICITY);
+        _super.call(this, ENEMY_WHEELIGATOR, center, WHEELIGATOR_RADIUS, WHEELIGATOR_ELASTICITY) || this;
+        _this.hitGround = false;
+        _this.angularVelocity = 0;
+        _this.startsRight = (Math.cos(angle) > 0);
+        _this.bodySprite = new Sprite();
+        _this.bodySprite.drawGeometry = function (c) {
+            var rim = 0.1;
+            c.strokeStyle = 'black';
+            c.beginPath();
+            c.arc(0, 0, WHEELIGATOR_RADIUS, 0, 2 * Math.PI, false);
+            c.arc(0, 0, WHEELIGATOR_RADIUS - rim, Math.PI, 3 * Math.PI, false);
+            c.stroke();
+            c.fillStyle = 'black';
+            for (var i = 0; i < 4; i++) {
+                var startAngle = i * (2 * Math.PI / 4);
+                var endAngle = startAngle + Math.PI / 4;
+                c.beginPath();
+                c.arc(0, 0, WHEELIGATOR_RADIUS, startAngle, endAngle, false);
+                c.arc(0, 0, WHEELIGATOR_RADIUS - rim, endAngle, startAngle, true);
+                c.fill();
+            }
+        };
+        return _this;
+    }
+    Wheeligator.prototype.move = function (seconds) {
+        var isOnFloor = this.isOnFloor();
+        if (!this.hitGround && isOnFloor) {
+            if (this.velocity.x < WHEELIGATOR_SPEED) {
+                this.velocity.x = this.startsRight ? WHEELIGATOR_SPEED : -WHEELIGATOR_SPEED;
+                this.hitGround = true;
+            }
+        }
+        if (isOnFloor) {
+            this.angularVelocity = -this.velocity.x / WHEELIGATOR_RADIUS;
+        }
+        this.velocity.y += (FREEFALL_ACCEL * seconds);
+        return this.velocity.mul(seconds);
+    };
+    Wheeligator.prototype.reactToWorld = function (contact) {
+        // If a floor, bounce off like elasticity is FLOOR_ELASTICITY
+        if (Edge.getOrientation(contact.normal) === EDGE_FLOOR) {
+            var perpendicular = this.velocity.projectOntoAUnitVector(contact.normal);
+            var parallel = this.velocity.sub(perpendicular);
+            this.velocity = parallel.add(perpendicular.mul(WHEELIGATOR_FLOOR_ELASTICITY));
+            this.angularVelocity = -this.velocity.x / WHEELIGATOR_RADIUS;
+        }
+    };
+    Wheeligator.prototype.afterTick = function (seconds) {
+        this.bodySprite.offsetBeforeRotation = this.getCenter();
+        this.bodySprite.angle = this.bodySprite.angle + this.angularVelocity * seconds;
+    };
+    Wheeligator.prototype.draw = function (c) {
+        var pos = this.getCenter();
+        this.bodySprite.draw(c);
+    };
+    return Wheeligator;
+}(WalkingEnemy));
 var useBackgroundCache = true;
 // Clip a rectangular w by h polygon by a line passing though split and the origin:
 //
@@ -2296,6 +4503,442 @@ var Keys = {
         }
     }
 };
+var ENTER_KEY = 13;
+var ESCAPE_KEY = 27;
+var SPACEBAR = 32;
+var UP_ARROW = 38;
+var DOWN_ARROW = 40;
+function getMenuUrl(username) { return '//' + location.host + '/data/' + username + '/'; }
+function getLevelUrl(username, levelname) {
+    // return '//' + location.host + '/data/' + username + '/' + levelname + '/';
+    return '//' + location.host + '/data/' + "Intro 4.json";
+}
+function text2html(text) {
+    return text ? text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : '';
+}
+// get json data via ajax
+function ajaxGet(what, url, onSuccess) {
+    function showError() {
+        $('#loadingScreen').html('Could not load ' + what + ' from<br><b>' + text2html(url) + '</b>');
+    }
+    $.ajax({
+        'url': url,
+        'type': 'GET',
+        'cache': false,
+        'dataType': 'json',
+        'success': function (data, status, request) {
+            if (data != null) {
+                onSuccess(data);
+            }
+            else {
+                showError();
+            }
+        },
+        'error': function (request, status, error) {
+            showError();
+        }
+    });
+}
+function globalScaleFactor() {
+    // return window['devicePixelRatio']; // This is too slow T_T
+    return 1;
+}
+////////////////////////////////////////////////////////////////////////////////
+// class MenuItem
+////////////////////////////////////////////////////////////////////////////////
+function MenuItem(levelname, title, difficulty) {
+    this.levelname = levelname;
+    this.title = title;
+    this.difficulty = difficulty;
+}
+////////////////////////////////////////////////////////////////////////////////
+// class Menu
+////////////////////////////////////////////////////////////////////////////////
+function Menu() {
+    this.username = null;
+    this.items = [];
+    this.isLoading = false;
+    this.selectedIndex = -1;
+}
+Menu.prototype.load = function (username, onSuccess) {
+    // Don't reload the menu if we just loaded it
+    if (!this.isLoading && this.username == username) {
+        if (onSuccess)
+            onSuccess();
+        return;
+    }
+    // Don't reload the menu if we're already loading it
+    if (this.isLoading && this.username == username) {
+        return;
+    }
+    this.username = username;
+    this.items = [];
+    this.isLoading = true;
+    var this_ = this;
+    ajaxGet('menu', getMenuUrl(username), function (json) {
+        var levels = json['levels'];
+        for (var i = 0; i < levels.length; i++) {
+            var level = levels[i];
+            this_.items.push(new MenuItem(level['html_title'], level['title'], level['difficulty']));
+        }
+        this_.isLoading = false;
+        this_.selectedIndex = 0;
+        if (onSuccess)
+            onSuccess();
+    });
+};
+Menu.prototype.updateSelectedIndex = function () {
+    var selectedLevel = $('#level' + this.selectedIndex);
+    if (selectedLevel.length > 0) {
+        $('.level').blur();
+        $(selectedLevel).focus();
+        // no idea why 475 is the magic number that centers the selected level, but not going to worry about it
+        var scrollTop = $('#levelScreen').scrollTop() + $(selectedLevel).offset().top - 475;
+        $('#levelScreen').scrollTop(scrollTop);
+    }
+};
+Menu.prototype.show = function () {
+    if (this.isLoading) {
+        $('#canvas').hide();
+        $('#levelScreen').hide();
+        $('#loadingScreen').show();
+        $('#loadingScreen').html('Loading...');
+    }
+    else {
+        $('#canvas').hide();
+        $('#levelScreen').show();
+        $('#loadingScreen').hide();
+        var html = '<h2>';
+        html += (this.username == 'rapt') ? 'Official Levels' : 'Levels made by ' + text2html(this.username);
+        html += '</h2><div id="levels">';
+        var prevDifficulty = null;
+        for (var i = 0; i < this.items.length; i++) {
+            var item = this.items[i];
+            var difficulty = ['Easy', 'Medium', 'Hard', 'Brutal', 'Demoralizing'][item.difficulty];
+            if (difficulty != prevDifficulty) {
+                prevDifficulty = difficulty;
+                html += '<div class="difficulty">' + difficulty + '</div>';
+            }
+            html += '<a class="level" id="level' + i + '" href="' + text2html(Hash.getLevelHash(this.username, item.levelname)) + '">';
+            var s = stats.getStatsForLevel(this.username, item.levelname);
+            html += '<img src="/images/' + (s['gotAllCogs'] ? 'checkplus' : s['complete'] ? 'check' : 'empty') + '.png">';
+            html += text2html(item.title) + '</a>';
+        }
+        html += '</div>';
+        $('#levelScreen').html(html);
+        var this_ = this;
+        $('.level').hover(function () {
+            $(this).focus();
+        });
+        $('.level').focus(function () {
+            this_.selectedIndex = this.id.substr(5); // remove "level"
+        });
+        this.updateSelectedIndex();
+    }
+};
+Menu.prototype.indexOfLevel = function (username, levelname) {
+    if (username === this.username) {
+        for (var i = 0; i < this.items.length; i++) {
+            if (levelname === this.items[i].levelname) {
+                return i;
+            }
+        }
+    }
+    return -1;
+};
+Menu.prototype.isLastLevel = function (username, levelname) {
+    if (username !== this.username) {
+        // This level is in some other menu, so return true (it is the last level)
+        // so pressing spacebar takes the user back to that other menu
+        return true;
+    }
+    else {
+        return this.indexOfLevel(username, levelname) >= this.items.length - 1;
+    }
+};
+Menu.prototype.keyDown = function (e) {
+    if (e.which == UP_ARROW) {
+        if (this.selectedIndex > 0)
+            this.selectedIndex--;
+        this.updateSelectedIndex();
+    }
+    else if (e.which == DOWN_ARROW) {
+        if (this.selectedIndex < this.items.length - 1)
+            this.selectedIndex++;
+        this.updateSelectedIndex();
+    }
+};
+Menu.prototype.keyUp = function (e) {
+};
+////////////////////////////////////////////////////////////////////////////////
+// class Level
+////////////////////////////////////////////////////////////////////////////////
+function Level() {
+    this.username = null;
+    this.levelname = null;
+    this.isLoading = false;
+    this.width = 800;
+    this.height = 600;
+    this.ratio = 0;
+    // set up the canvas
+    this.canvas = $('#canvas')[0];
+    this.context = this.canvas.getContext('2d');
+    this.lastTime = new Date();
+    this.game = null;
+    this.json = null;
+}
+Level.prototype.tick = function () {
+    var currentTime = new Date();
+    var seconds = (currentTime - this.lastTime) / 1000;
+    this.lastTime = currentTime;
+    // Retina support
+    var ratio = globalScaleFactor();
+    if (ratio != this.ratio) {
+        this.canvas.width = Math.round(this.width * ratio);
+        this.canvas.height = Math.round(this.height * ratio);
+        this.canvas.style.width = this.width + 'px';
+        this.canvas.style.height = this.height + 'px';
+        this.context.scale(ratio, ratio);
+    }
+    if (this.game != null) {
+        // if the computer goes to sleep, act like the game was paused
+        if (seconds > 0 && seconds < 1)
+            this.game.tick(seconds);
+        this.game.lastLevel = menu.isLastLevel(this.username, this.levelname);
+        this.game.draw(this.context);
+    }
+};
+Level.prototype.restart = function () {
+    Particle.reset();
+    this.game = new Game();
+    this.game.resize(this.width, this.height);
+    gameState.loadLevelFromJSON(this.json);
+    // add the check mark on the level menu when this level is won
+    var this_ = this;
+    this.game.onWin = function () {
+        var gotAllCogs = gameState.stats[STAT_COGS_COLLECTED] == gameState.stats[STAT_NUM_COGS];
+        var s = stats.getStatsForLevel(this_.username, this_.levelname);
+        stats.setStatsForLevel(this_.username, this_.levelname, true, s['gotAllCogs'] || gotAllCogs);
+    };
+};
+Level.prototype.load = function (username, levelname, onSuccess) {
+    this.username = username;
+    this.levelname = levelname;
+    this.isLoading = true;
+    var this_ = this;
+    ajaxGet('level', getLevelUrl(username, levelname), function (json) {
+        // reset the game
+        this_.json = json; //JSON.parse(json['data']);
+        this_.restart();
+        // reset the tick timer in case level loading took a while (we don't want the physics to
+        // try and catch up, because then it will rush through the first few seconds of the game)
+        this_.lastTime = new Date();
+        this_.isLoading = false;
+        if (onSuccess)
+            onSuccess();
+    });
+};
+Level.prototype.show = function () {
+    if (this.isLoading) {
+        $('#canvas').hide();
+        $('#levelScreen').hide();
+        $('#loadingScreen').show();
+        $('#loadingScreen').html('Loading...');
+    }
+    else {
+        $('#canvas').show();
+        $('#levelScreen').hide();
+        $('#loadingScreen').hide();
+    }
+};
+Level.prototype.keyDown = function (e) {
+    if (this.game != null) {
+        this.game.keyDown(e);
+        if (e.which == SPACEBAR) {
+            if (gameState.gameStatus === GAME_LOST) {
+                // restart the current level
+                this.restart();
+            }
+            else if (gameState.gameStatus === GAME_WON) {
+                if (menu.isLastLevel(this.username, this.levelname)) {
+                    // go back to the level menu
+                    hash.setHash(this.username, null);
+                }
+                else {
+                    // go straight to the next level
+                    var index = menu.indexOfLevel(this.username, this.levelname);
+                    hash.setHash(this.username, menu.items[index + 1].levelname);
+                }
+            }
+        }
+    }
+};
+Level.prototype.keyUp = function (e) {
+    if (this.game != null) {
+        this.game.keyUp(e);
+    }
+};
+////////////////////////////////////////////////////////////////////////////////
+// class Hash
+////////////////////////////////////////////////////////////////////////////////
+function Hash() {
+    this.username = null;
+    this.levelname = null;
+    this.hash = null;
+    this.prevHash = null;
+}
+Hash.prototype.hasChanged = function () {
+    if (this.hash != location.hash) {
+        this.prevHash = this.hash;
+        this.hash = location.hash;
+        var levelMatches = /^#\/?([^\/]+)\/([^\/]+)\/?$/.exec(this.hash);
+        var userMatches = /^#\/?([^\/]+)\/?$/.exec(this.hash);
+        if (levelMatches != null) {
+            this.username = levelMatches[1];
+            this.levelname = levelMatches[2];
+        }
+        else if (userMatches != null) {
+            this.username = userMatches[1];
+            this.levelname = null;
+        }
+        else {
+            this.username = null;
+            this.levelname = null;
+        }
+        return true;
+    }
+    return false;
+};
+Hash.prototype.setHash = function (username, levelname) {
+    var newHash = '#/' + username + '/' + (levelname ? levelname + '/' : '');
+    if (this.prevHash === newHash) {
+        // if we were on page A, we are now on page B, and we want to go back to page A, use the browser's back button instead
+        // this is so a game session doesn't add tons of level => menu => level => menu stuff to the history
+        history.back();
+    }
+    else {
+        this.username = username;
+        this.levelname = levelname;
+        location.hash = newHash;
+    }
+};
+Hash.getMenuHash = function (username) { return '#/' + username + '/'; };
+Hash.getLevelHash = function (username, levelname) { return '#/' + username + '/' + levelname + '/'; };
+////////////////////////////////////////////////////////////////////////////////
+// module Main
+////////////////////////////////////////////////////////////////////////////////
+var stats = null;
+var hash = null;
+var menu = null;
+var level = null;
+var keyToChange = null;
+// scroll the game to the center of the window if it lies partially or completely off screen
+function scrollGameIntoWindow() {
+    var windowTop = $('body').scrollTop(), windowHeight = $(window).height();
+    var gameTop = $('#game').offset().top, gameHeight = $('#game').outerHeight();
+    if (gameTop < windowTop || gameTop + gameHeight > windowTop + windowHeight) {
+        // html is for firefox, body is for webkit
+        $('html, body').animate({ scrollTop: gameTop + (gameHeight - windowHeight) / 2 });
+    }
+}
+$(document).ready(function () {
+    scrollGameIntoWindow();
+    Keys.load();
+    hash = new Hash();
+    menu = new Menu();
+    level = new Level();
+    stats = new PlayerStats(function () {
+        // if we're in the menu, reload the menu so the icons show up
+        if (hash.levelname == null) {
+            menu.show();
+        }
+    });
+    tick();
+    setInterval(tick, 1000 / 60);
+});
+$('.key.changeable').live('mousedown', function (e) {
+    keyToChange = this.id;
+    $('.key.changing').removeClass('changing');
+    $('#' + keyToChange).addClass('changing');
+    e.preventDefault();
+    e.stopPropagation();
+});
+$(document).keydown(function (e) {
+    // catch every key if we're remapping keys
+    if (keyToChange != null) {
+        Keys.keyMap[keyToChange] = e.which;
+        Keys.save();
+        $('#' + keyToChange).removeClass('changing');
+        e.preventDefault();
+        e.stopPropagation();
+        keyToChange = null;
+        return;
+    }
+    // Allow keyboard shortcuts to work
+    if (!e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        menu.keyDown(e);
+        level.keyDown(e);
+        if (e.which === ESCAPE_KEY) {
+            // escape returns the player to the level select page
+            hash.setHash(menu.username || level.username, null);
+        }
+        // Prevents default behaviors like scrolling up/down
+        if (e.which == UP_ARROW || e.which == DOWN_ARROW || e.which == SPACEBAR) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+});
+$(document).keyup(function (e) {
+    // Allow keyboard shortcuts to work
+    if (!e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        menu.keyUp(e);
+        level.keyUp(e);
+        // Prevents default behaviors like scrolling up/down
+        if (e.which == UP_ARROW || e.which == DOWN_ARROW || e.which == SPACEBAR) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+});
+var flag = true;
+function tick() {
+    //if (hash.hasChanged()) {
+    //    if (hash.username == null) {
+    //        hash.setHash('rapt', null);;
+    //    } else if (hash.levelname == null) {
+    //        level.game = null;;
+    //        var index = menu.indexOfLevel(level.username, level.levelname);
+    //        if (index !== -1) menu.selectedIndex = index;;
+    //        menu.load(hash.username, function () {
+    //            menu.show();;
+    //        });;
+    //        menu.show();;
+    //    } else {
+    //        scrollGameIntoWindow();;
+    //        menu.load(hash.username);;
+    //        level.load(hash.username, hash.levelname, function () {
+    //            level.show();;
+    //        });;
+    //        level.show();;
+    //    };
+    //};
+    if (flag === true) {
+        scrollGameIntoWindow();
+        ;
+        menu.load(hash.username);
+        ;
+        level.load(hash.username, hash.levelname, function () {
+            level.show();
+            ;
+        });
+        ;
+        level.show();
+        ;
+        flag = false;
+    }
+    level.tick();
+}
 var PlayerStats = (function () {
     function PlayerStats(callback) {
         // this.current_username = null;//username;
@@ -2916,6 +5559,65 @@ var Cell = (function () {
     };
     return Cell;
 }());
+// enum DoorType
+var ONE_WAY = 0;
+var TWO_WAY = 1;
+var Door = (function () {
+    function Door(edge0, edge1, cell0, cell1) {
+        this.cells = [cell0, cell1];
+        this.edges = [edge0, edge1];
+    }
+    Door.prototype.doorExists = function (i) {
+        if (this.edges[i] === null) {
+            return false;
+        }
+        var cell = this.cells[i];
+        return cell !== null && cell.getEdge(this.edges[i]) !== -1;
+    };
+    Door.prototype.doorPut = function (i, kill) {
+        if (this.edges[i] !== null && !this.doorExists(i)) {
+            var cell = this.cells[i];
+            if (cell === null) {
+                return;
+            }
+            cell.addEdge(new Edge(this.edges[i].getStart(), this.edges[i].getEnd(), this.edges[i].color));
+            if (kill) {
+                gameState.killAll(this.edges[i]);
+            }
+            gameState.recordModification();
+        }
+    };
+    Door.prototype.doorRemove = function (i) {
+        if (this.edges[i] !== null && this.doorExists(i)) {
+            var cell = this.cells[i];
+            if (cell === null) {
+                return;
+            }
+            cell.removeEdge(this.edges[i]);
+            gameState.recordModification();
+        }
+    };
+    Door.prototype.act = function (behavior, force, kill) {
+        for (var i = 0; i < 2; ++i) {
+            switch (behavior) {
+                case DOORBELL_OPEN:
+                    this.doorRemove(i);
+                    break;
+                case DOORBELL_CLOSE:
+                    this.doorPut(i, kill);
+                    break;
+                case DOORBELL_TOGGLE:
+                    if (this.doorExists(i)) {
+                        this.doorRemove(i);
+                    }
+                    else
+                        this.doorPut(i, kill);
+                    break;
+            }
+        }
+    };
+    return Door;
+}());
 // enum EdgeType
 var EDGE_FLOOR = 0;
 var EDGE_LEFT = 1;
@@ -3266,6 +5968,50 @@ var GameState = (function () {
             var center = enemy.getCenter();
             if (center.x >= drawMinX && center.y >= drawMinY && center.x <= drawMaxX && center.y <= drawMaxY) {
                 enemy.draw(c);
+            }
+        }
+    };
+    GameState.prototype.loadLevelFromJSON = function (json) {
+        // values are quoted (like json['width'] instead of json.width) so closure compiler doesn't touch them
+        // Reset stats
+        this.stats = [0, 0, 0, 0];
+        // Load size, spawn point, and goal
+        this.world = new World(json['width'], json['height'], jsonToVec(json['start']), jsonToVec(json['end']));
+        // Load cells & create edges
+        for (var x = 0; x < json['width']; x++) {
+            for (var y = 0; y < json['height']; y++) {
+                var type = json['cells'][y][x];
+                this.world.setCell(x, y, type);
+                if (type !== CELL_SOLID) {
+                    this.world.safety = new Vector(x + 0.5, y + 0.5);
+                }
+            }
+        }
+        this.world.createAllEdges();
+        // Reset players
+        this.playerA.reset(this.world.spawnPoint, EDGE_RED);
+        this.playerB.reset(this.world.spawnPoint, EDGE_BLUE);
+        // Load entities
+        for (var i = 0; i < json['entities'].length; ++i) {
+            var e = json['entities'][i];
+            switch (e['class']) {
+                case 'cog':
+                    this.enemies.push(new GoldenCog(jsonToVec(e['pos'])));
+                    break;
+                case 'wall':
+                    gameState.addDoor(jsonToVec(e['end']), jsonToVec(e['start']), e['oneway'] ? ONE_WAY : TWO_WAY, e['color'], e['open']);
+                    break;
+                case 'button':
+                    var button = new Doorbell(jsonToVec(e['pos']), e['type'], true);
+                    button.doors = e['walls'];
+                    this.enemies.push(button);
+                    break;
+                case 'sign':
+                    this.enemies.push(new HelpSign(jsonToVec(e['pos']), e['text']));
+                    break;
+                case 'enemy':
+                    this.enemies.push(jsonToEnemy(e));
+                    break;
             }
         }
     };

@@ -329,4 +329,53 @@ class GameState {
             }
         }
     }
-}
+
+    loadLevelFromJSON(json) {
+        // values are quoted (like json['width'] instead of json.width) so closure compiler doesn't touch them
+
+        // Reset stats
+        this.stats = [0, 0, 0, 0];
+
+        // Load size, spawn point, and goal
+        this.world = new World(json['width'], json['height'], jsonToVec(json['start']), jsonToVec(json['end']));
+
+        // Load cells & create edges
+        for (var x = 0; x < json['width']; x++) {
+            for (var y = 0; y < json['height']; y++) {
+                var type = json['cells'][y][x];
+                this.world.setCell(x, y, type);
+                if (type !== CELL_SOLID) {
+                    this.world.safety = new Vector(x + 0.5, y + 0.5);
+                }
+            }
+        }
+        this.world.createAllEdges();
+
+        // Reset players
+        this.playerA.reset(this.world.spawnPoint, EDGE_RED);
+        this.playerB.reset(this.world.spawnPoint, EDGE_BLUE);
+
+        // Load entities
+        for (var i = 0; i < json['entities'].length; ++i) {
+            var e = json['entities'][i];
+            switch (e['class']) {
+                case 'cog':
+                    this.enemies.push(new GoldenCog(jsonToVec(e['pos'])));
+                    break;
+                case 'wall':
+                    gameState.addDoor(jsonToVec(e['end']), jsonToVec(e['start']), e['oneway'] ? ONE_WAY : TWO_WAY, e['color'], e['open']);
+                    break;
+                case 'button':
+                    var button = new Doorbell(jsonToVec(e['pos']), e['type'], true);
+                    button.doors = e['walls'];
+                    this.enemies.push(button);
+                    break;
+                case 'sign':
+                    this.enemies.push(new HelpSign(jsonToVec(e['pos']), e['text']));
+                    break;
+                case 'enemy':
+                    this.enemies.push(jsonToEnemy(e));
+                    break;
+            }
+        }
+    }

@@ -1,3 +1,4 @@
+///<reference path="../util/vector.ts" /> 
 // class Entity
 
 class Entity {

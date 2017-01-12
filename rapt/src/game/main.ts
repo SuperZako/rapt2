@@ -1,4 +1,4 @@
-// #require <game.js>
+
 
 var ENTER_KEY = 13;
 var ESCAPE_KEY = 27;

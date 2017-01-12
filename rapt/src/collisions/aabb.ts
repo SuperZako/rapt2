@@ -1,3 +1,6 @@
+///<reference path="../util/vector.ts" /> 
+
+
 // class AABB extends Shape
 class AABB {
     lowerLeft: Vector;

@@ -137,7 +137,7 @@
     <Content Include="src\entities\jetstream.js" />
     <Content Include="src\entities\laser.js" />
     <Content Include="src\entities\multigun.js" />
-    <Content Include="src\entities\particle.js" />
+    <TypeScriptCompile Include="src\entities\particle.ts" />
     <TypeScriptCompile Include="src\entities\player.ts" />
     <Content Include="src\entities\popper.js" />
     <Content Include="src\entities\riotbullet.js" />

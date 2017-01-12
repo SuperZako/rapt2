@@ -12,6 +12,13 @@ var STAT_ENEMY_DEATHS = 1;
 var STAT_COGS_COLLECTED = 2;
 var STAT_NUM_COGS = 3;
 
+// global variable for game state, initialized in main.js
+var gameState;
+
+// bounding rectangle around all pixels currently being drawn to (also includes 2 cells of padding,
+// so just check that the enemy center is within these bounds, don't bother about adding the radius)
+var drawMinX = 0, drawMinY = 0;
+var drawMaxX = 0, drawMaxY = 0;
 
 // class GameState
 function GameState() {
@@ -37,13 +44,7 @@ function GameState() {
 	this.stats = [0, 0, 0, 0];
 }
 
-// global variable for game state, initialized in main.js
-var gameState;
 
-// bounding rectangle around all pixels currently being drawn to (also includes 2 cells of padding,
-// so just check that the enemy center is within these bounds, don't bother about adding the radius)
-var drawMinX = 0, drawMinY = 0;
-var drawMaxX = 0, drawMaxY = 0;
 
 GameState.prototype.recordModification = function() {
 	this.modificationCount++;

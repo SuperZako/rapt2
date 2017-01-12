@@ -106,7 +106,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
-    <Content Include="rapt.js" />
     <Content Include="src\collisions\aabb.js" />
     <Content Include="src\collisions\circle.js" />
     <Content Include="src\collisions\collisiondetection.js" />

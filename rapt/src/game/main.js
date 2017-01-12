@@ -9,7 +9,7 @@ var DOWN_ARROW = 40;
 function getMenuUrl(username) { return '//' + location.host + '/data/' + username + '/'; }
 function getLevelUrl(username, levelname) {
     // return '//' + location.host + '/data/' + username + '/' + levelname + '/';
-    return '//' + location.host + '/data/' + "Intro 1.json";
+    return '//' + location.host + '/data/' + "Coordinated Panic.json";
 }
 function text2html(text) {
     return text ? text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : '';

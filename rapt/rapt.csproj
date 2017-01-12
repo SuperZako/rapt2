@@ -111,7 +111,7 @@
     <Content Include="index.html" />
     <TypeScriptCompile Include="src\collisions\aabb.ts" />
     <TypeScriptCompile Include="src\collisions\circle.ts" />
-    <Content Include="src\collisions\collisiondetection.js" />
+    <TypeScriptCompile Include="src\collisions\collisiondetection.ts" />
     <TypeScriptCompile Include="src\collisions\contact.ts" />
     <TypeScriptCompile Include="src\collisions\edgequad.ts" />
     <TypeScriptCompile Include="src\collisions\polygon.ts" />
@@ -156,7 +156,7 @@
     <Content Include="src\game\backgroundcache.js" />
     <Content Include="src\game\camera.js" />
     <Content Include="src\game\game.js" />
-    <Content Include="src\game\keys.js" />
+    <TypeScriptCompile Include="src\game\keys.ts" />
     <Content Include="src\game\main.js" />
     <TypeScriptCompile Include="src\game\playerstats.ts" />
     <Content Include="src\game\screen.js" />

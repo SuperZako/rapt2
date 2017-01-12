@@ -1,73 +1,4 @@
 (function () {
-    function PlayerStats(callback) {
-        this.current_username = null;//susername;;
-        this.stats = [];;
-        if (this.current_username !== null) {
-            var this_ = this;
-            $.ajax({
-                'url': '/stats/',
-                'type': 'GET',
-                'cache': false,
-                'dataType': 'json',
-                'success': function (stats) {
-                    this_.stats = stats;;
-                    callback();;
-
-                }
-            });;
-        } else {
-            this.stats = JSON.parse(getCookie('rapt') || '[]');;
-            callback();;
-        };
-
-    };
-    PlayerStats.prototype.getStatsForLevel = function (username, levelname) {
-        for (var i = 0; i < this.stats.length; i++) {
-            var stat = this.stats[i];
-            if (stat['username'] == username && stat['levelname'] == levelname) {
-                return stat;;
-            };
-        };
-        return {
-            'username': username,
-            'levelname': levelname,
-            'complete': false,
-            'gotAllCogs': false
-        };;
-
-    };;
-    PlayerStats.prototype.setStatsForLevel = function (username, levelname, complete, gotAllCogs) {
-        for (var i = 0; i < this.stats.length; i++) {
-            var stat = this.stats[i];
-            if (stat['username'] == username && stat['levelname'] == levelname) {
-                this.stats.splice(i--, 1);;
-            };
-        };
-        var stat = {
-            'username': username,
-            'levelname': levelname,
-            'complete': complete,
-            'gotAllCogs': gotAllCogs
-        };
-        this.stats.push(stat);;
-        if (this.current_username !== null) {
-            $.ajax({
-                'url': '/stats/',
-                'type': 'PUT',
-                'dataType': 'json',
-                'data': JSON.stringify(stat),
-                'beforeSend': function (xhr) {
-                    xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'));;
-
-                },
-                'contentType': 'application/json; charset=utf-8'
-            });;
-        } else {
-            setCookie('rapt', JSON.stringify(this.stats), 365 * 5);;
-        };
-
-    };;
-
     Function.prototype.subclasses = function (obj) {
         $.extend(this.prototype, obj.prototype);;
 
@@ -2671,7 +2602,7 @@
 
         }
     };
-  
+
     function Keyframe(x, y) {
         this.center = new Vector(x, y);;
         this.angles = [];;
@@ -3006,7 +2937,7 @@
         this.sprites[SPIDER_BODY].draw(c);;
 
     };;
-   
+
     var ONE_WAY = 0;
     var TWO_WAY = 1;
     function Door(edge0, edge1, cell0, cell1) {
@@ -3068,7 +2999,7 @@
         };
 
     };;
-   
+
 
 
     function jsonToTarget(json) {

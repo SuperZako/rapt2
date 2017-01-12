@@ -1,5 +1,3 @@
-#require <class.js>
-#require <walkingenemy.js>
 
 var WHEELIGATOR_RADIUS = 0.3;
 var WHEELIGATOR_SPEED = 3;

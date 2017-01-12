@@ -1,5 +1,4 @@
-#require <class.js>
-#require <enemy.js>
+
 
 var SPIKE_BALL_RADIUS = 0.2;
 

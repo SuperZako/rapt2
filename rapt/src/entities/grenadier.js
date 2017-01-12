@@ -1,6 +1,3 @@
-#require <class.js>
-#require <spawningenemy.js>
-
 var GRENADIER_WIDTH = .5;
 var GRENADIER_HEIGHT = .5;
 // Max speed at which a Grenadier can throw an enemy

@@ -1,5 +1,3 @@
-#require <class.js>
-#require <enemy.js>
 
 SpawningEnemy.subclasses(Enemy);
 

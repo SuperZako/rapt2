@@ -1,5 +1,3 @@
-#require <class.js>
-#require <spawningenemy.js>
 
 var BOUNCY_LAUNCHER_WIDTH = .5;
 var BOUNCY_LAUNCHER_HEIGHT = .5;

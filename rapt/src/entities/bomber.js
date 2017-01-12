@@ -1,5 +1,3 @@
-#require <class.js>
-#require <spawningenemy.js>
 
 var BOMBER_WIDTH = .4;
 var BOMBER_HEIGHT = .4;

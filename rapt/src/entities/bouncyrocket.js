@@ -1,5 +1,3 @@
-#require <class.js>
-#require <rocket.js>
 
 var BOUNCY_ROCKET_SPEED = 4;
 var BOUNCY_ROCKET_MAX_ROTATION = 3;

@@ -1,5 +1,4 @@
-#require <class.js>
-#require <freefallenemy.js>
+
 
 var STALACBAT_RADIUS = 0.2;
 var STALACBAT_SPEED = 2;

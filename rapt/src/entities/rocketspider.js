@@ -1,7 +1,3 @@
-#require <class.js>
-#require <spawningenemy.js>
-#require <rocketspiderlegs.js>
-#require <keyframe.js>
 
 var SPIDER_LEG_HEIGHT = 0.5;
 

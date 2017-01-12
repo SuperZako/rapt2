@@ -1,5 +1,3 @@
-#require <class.js>
-#require <spawningenemy.js>
 
 var MULTI_GUN_WIDTH = .5;
 var MULTI_GUN_HEIGHT = .5;

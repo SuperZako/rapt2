@@ -1,5 +1,3 @@
-#require <class.js>
-#require <rotatingenemy.js>
 
 var WALL_AVOIDER_RADIUS = 0.3;
 var WALL_AVOIDER_ACCEL = 3.3;

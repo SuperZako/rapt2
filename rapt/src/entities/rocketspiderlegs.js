@@ -1,5 +1,3 @@
-#require <class.js>
-#require <walkingenemy.js>
 
 var SPIDER_LEGS_RADIUS = .45;
 var SPIDER_LEGS_WEAK_SPOT_RADIUS = .2;

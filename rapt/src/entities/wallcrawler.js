@@ -1,5 +1,3 @@
-#require <class.js>
-#require <walkingenemy.js>
 
 var WALL_CRAWLER_SPEED = 1;
 var WALL_CRAWLER_RADIUS = 0.25;

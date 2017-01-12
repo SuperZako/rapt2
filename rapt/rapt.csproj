@@ -173,7 +173,7 @@
     <TypeScriptCompile Include="src\world\cell.ts" />
     <Content Include="src\world\door.js" />
     <TypeScriptCompile Include="src\world\edge.ts" />
-    <Content Include="src\world\gamestate.js" />
+    <TypeScriptCompile Include="src\world\gamestate.ts" />
     <Content Include="src\world\levelloader.js" />
     <TypeScriptCompile Include="src\world\world.ts" />
     <Content Include="style.css" />

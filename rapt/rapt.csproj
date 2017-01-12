@@ -175,7 +175,7 @@
     <TypeScriptCompile Include="src\world\edge.ts" />
     <Content Include="src\world\gamestate.js" />
     <Content Include="src\world\levelloader.js" />
-    <Content Include="src\world\world.js" />
+    <TypeScriptCompile Include="src\world\world.ts" />
     <Content Include="style.css" />
     <Content Include="Web.config" />
   </ItemGroup>

@@ -2065,6 +2065,17 @@ var PlayerStats = (function () {
     };
     return PlayerStats;
 }());
+// abstract class Screen
+var Screen = (function () {
+    function Screen() {
+    }
+    Screen.prototype.tick = function (seconds) { };
+    Screen.prototype.draw = function (c) { };
+    Screen.prototype.resize = function (w, h) { };
+    Screen.prototype.keyDown = function (key) { };
+    Screen.prototype.keyUp = function (key) { };
+    return Screen;
+}());
 var COG_ICON_TEETH_COUNT = 16;
 function drawCog(c, x, y, radius, numTeeth, numSpokes, changeBlending, numVertices) {
     var innerRadius = radius * 0.2;

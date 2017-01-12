@@ -159,7 +159,7 @@
     <TypeScriptCompile Include="src\game\keys.ts" />
     <Content Include="src\game\main.js" />
     <TypeScriptCompile Include="src\game\playerstats.ts" />
-    <Content Include="src\game\screen.js" />
+    <TypeScriptCompile Include="src\game\screen.ts" />
     <Content Include="src\util\class.js" />
     <TypeScriptCompile Include="src\util\cog.ts" />
     <TypeScriptCompile Include="src\util\cookie.ts" />

@@ -1,76 +1,4 @@
 (function () {
-    var useBackgroundCache = true;
-    function SplitScreenCamera(playerA, playerB, width, height) {
-        this.playerA = playerA;;
-        this.playerB = playerB;;
-        this.width = width;;
-        this.height = height;;
-        if (useBackgroundCache) {
-            this.backgroundCacheA = new BackgroundCache('a');;
-            this.backgroundCacheB = new BackgroundCache('b');;
-        } else {
-            this.backgroundCacheA = null;;
-            this.backgroundCacheB = null;;
-        };
-
-    };
-    function clipHelper(c, w, h, split) {
-        var tx = h / split.y;
-        var ty = w / split.x;
-        c.beginPath();;
-        if ((-w) * split.y - (-h) * split.x >= 0) c.lineTo(-w, -h);;
-        if (Math.abs(split.y * ty) <= h) c.lineTo(-split.x * ty, -split.y * ty);;
-        if ((-w) * split.y - (+h) * split.x >= 0) c.lineTo(-w, +h);;
-        if (Math.abs(split.x * tx) <= w) c.lineTo(split.x * tx, split.y * tx);;
-        if ((+w) * split.y - (+h) * split.x >= 0) c.lineTo(+w, +h);;
-        if (Math.abs(split.y * ty) <= h) c.lineTo(split.x * ty, split.y * ty);;
-        if ((+w) * split.y - (-h) * split.x >= 0) c.lineTo(+w, -h);;
-        if (Math.abs(split.x * tx) <= w) c.lineTo(-split.x * tx, -split.y * tx);;
-        c.closePath();;
-        c.clip();;
-
-    };
-    SplitScreenCamera.prototype.draw = function (c, renderer) {
-        var _0, _1, _2, _3;
-        var positionA = this.playerA.getCenter();
-        var positionB = this.playerB.getCenter();
-        var center = (_0 = (_1 = new Vector(0, 0), _1.x = positionA.x + positionB.x, _1.y = positionA.y + positionB.y, _1), _0.x /= 2, _0.y /= 2, _0);
-        var temp = (_0 = (_2 = new Vector(0, 0), _2.x = positionB.x - positionA.x, _2.y = positionB.y - positionA.y, _2), _1 = Math.sqrt(_0.x * _0.x + _0.y * _0.y), _0.x /= _1, _0.y /= _1, _0);
-        temp = new Vector(this.width / Math.abs(temp.x), this.height / Math.abs(temp.y));;
-        var maxLength = Math.min(temp.x, temp.y) / 4;
-        var isSplit = ((_0 = (_1 = new Vector(0, 0), _1.x = positionB.x - positionA.x, _1.y = positionB.y - positionA.y, _1), _0.x * _0.x + _0.y * _0.y) > 4 * maxLength * maxLength);
-        if (!isSplit) {
-            renderer.render(c, center, this.width, this.height, this.backgroundCacheA);;
-        } else {
-            var AtoB = (_0 = (_1 = (_3 = new Vector(0, 0), _3.x = positionB.x - positionA.x, _3.y = positionB.y - positionA.y, _3), _2 = Math.sqrt(_1.x * _1.x + _1.y * _1.y), _1.x /= _2, _1.y /= _2, _1), _0.x *= 99, _0.y *= 99, _0);
-            var split = (_0 = new Vector(0, 0), _0.x = AtoB.y, _0.y = -AtoB.x, _0);
-            var centerA = (_0 = new Vector(0, 0), _0.x = center.x - positionA.x, _0.y = center.y - positionA.y, _0);
-            if ((centerA.x * centerA.x + centerA.y * centerA.y) > maxLength * maxLength) centerA = (_0 = (_1 = new Vector(0, 0), _2 = Math.sqrt(centerA.x * centerA.x + centerA.y * centerA.y), _1.x = centerA.x / _2, _1.y = centerA.y / _2, _1), _0.x *= maxLength, _0.y *= maxLength, _0);;
-            centerA = (_0 = new Vector(0, 0), _0.x = centerA.x + positionA.x, _0.y = centerA.y + positionA.y, _0);;
-            var centerB = (_0 = new Vector(0, 0), _0.x = center.x - positionB.x, _0.y = center.y - positionB.y, _0);
-            if ((centerB.x * centerB.x + centerB.y * centerB.y) > maxLength * maxLength) centerB = (_0 = (_1 = new Vector(0, 0), _2 = Math.sqrt(centerB.x * centerB.x + centerB.y * centerB.y), _1.x = centerB.x / _2, _1.y = centerB.y / _2, _1), _0.x *= maxLength, _0.y *= maxLength, _0);;
-            centerB = (_0 = new Vector(0, 0), _0.x = centerB.x + positionB.x, _0.y = centerB.y + positionB.y, _0);;
-            c.save();;
-            clipHelper(c, this.width / 2, this.height / 2, split);;
-            renderer.render(c, centerA, this.width, this.height, this.backgroundCacheA);;
-            c.restore();;
-            c.save();;
-            clipHelper(c, this.width / 2, this.height / 2, (_0 = -1, _1 = new Vector(0, 0), _1.x = split.x * _0, _1.y = split.y * _0, _1));;
-            renderer.render(c, centerB, this.width, this.height, this.backgroundCacheB);;
-            c.restore();;
-            var splitSize = Math.min(0.1, ((_0 = (_1 = new Vector(0, 0), _1.x = positionB.x - positionA.x, _1.y = positionB.y - positionA.y, _1), Math.sqrt(_0.x * _0.x + _0.y * _0.y)) - 1.9 * maxLength) * 0.01);
-            c.save();;
-            c.lineWidth = 2 * splitSize;;
-            c.strokeStyle = 'black';;
-            c.beginPath();;
-            c.moveTo(-split.x, -split.y);;
-            c.lineTo(split.x, split.y);;
-            c.stroke();;
-            c.restore();;
-        };
-
-    };;
-    var Camera = SplitScreenCamera;
     function PlayerStats(callback) {
         this.current_username = null;//susername;;
         this.stats = [];;
@@ -139,24 +67,7 @@
         };
 
     };;
-    function Screen() {
-        this.tick = function (seconds) {
 
-        };;
-        this.draw = function (c) {
-
-        };;
-        this.resize = function (w, h) {
-
-        };;
-        this.keyDown = function (key) {
-
-        };;
-        this.keyUp = function (key) {
-
-        };;
-
-    };
     Function.prototype.subclasses = function (obj) {
         $.extend(this.prototype, obj.prototype);;
 

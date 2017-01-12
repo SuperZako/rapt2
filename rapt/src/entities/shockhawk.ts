@@ -42,7 +42,7 @@ class ShockHawk extends HoveringEnemy {
         };
     }
 
-    getTarget() { return target === gameState.playerB; }
+    getTarget() { return this.target === gameState.playerB; }
     setTarget(player) { this.target = player; }
 
     avoidsSpawn() {

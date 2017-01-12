@@ -31,7 +31,7 @@ function clipHelper(c, w, h, split) {
 class SplitScreenCamera {
     backgroundCacheA;
     backgroundCacheB;
-    constructor(public playerA, public playerB, public width, public height) {
+    constructor(public playerA?, public playerB?, public width?, public height?) {
         //this.playerA = playerA;
         //this.playerB = playerB;
         //this.width = width;

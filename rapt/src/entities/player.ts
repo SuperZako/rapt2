@@ -383,7 +383,7 @@ class Player extends Entity {
         else if (edgeQuad.edges[EDGE_RIGHT]) this.state = PLAYER_STATE_RIGHT_WALL;
         else this.state = PLAYER_STATE_AIR;
 
-        var ref_closestPointWorld = {}, ref_closestPointShape = {};
+        var ref_closestPointWorld = { ref: null }, ref_closestPointShape = { ref: null };
         var closestPointDistance = CollisionDetector.closestToEntityWorld(this, 0.1, ref_closestPointShape, ref_closestPointWorld, gameState.world);
 
         if (this.state == PLAYER_STATE_LEFT_WALL || this.state == PLAYER_STATE_RIGHT_WALL) {
@@ -556,7 +556,7 @@ class Player extends Entity {
                 frame = Keyframe.lerp(fallingKeyframes, this.fallingFrame);
             }
         } else if (this.state == PLAYER_STATE_CLAMBER) {
-            var ref_shapePoint = {}, ref_worldPoint = {};
+            var ref_shapePoint = { ref: null }, ref_worldPoint = { ref: null};
             CollisionDetector.closestToEntityWorld(this, 2, ref_shapePoint, ref_worldPoint, gameState.world);
 
             // this should be from -0.5 to 0.5, so add 0.5 so it is from 0 to 1

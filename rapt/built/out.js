@@ -228,7 +228,7 @@ var CollisionDetector;
     ////////////////////////////////////////////////////////////////////////////////
     // collisions
     function collideEntityWorld(entity, ref_deltaPosition, ref_velocity, elasticity, world, emergency) {
-        return this.collideShapeWorld(entity.getShape(), ref_deltaPosition, ref_velocity, elasticity, world, entity.getColor(), emergency);
+        return collideShapeWorld(entity.getShape(), ref_deltaPosition, ref_velocity, elasticity, world, entity.getColor(), emergency);
     }
     CollisionDetector.collideEntityWorld = collideEntityWorld;
     function collideShapeWorld(shape, ref_deltaPosition, ref_velocity, elasticity, world, color, emergency) {
@@ -259,7 +259,7 @@ var CollisionDetector;
             // see if this setting for deltaPosition causes a collision
             for (var it = 0; it < edges.length; it++) {
                 var edge = edges[it];
-                var segmentContact = this.collideShapeSegment(shape, ref_deltaPosition.ref, edge.segment);
+                var segmentContact = collideShapeSegment(shape, ref_deltaPosition.ref, edge.segment);
                 if (newContact === null || (segmentContact !== null && segmentContact.proportionOfDelta < newContact.proportionOfDelta)) {
                     newContact = segmentContact;
                 }
@@ -267,7 +267,7 @@ var CollisionDetector;
             // if we didn't hit anything this iteration, return our last hit
             // on the first iteration, this means return NULL
             if (newContact === null) {
-                this.emergencyCollideShapeWorld(shape, ref_deltaPosition, ref_velocity, world);
+                emergencyCollideShapeWorld(shape, ref_deltaPosition, ref_velocity, world);
                 return lastContact;
             }
             // modify the velocity to not be pointing into the edge
@@ -293,7 +293,7 @@ var CollisionDetector;
         ref_deltaPosition.ref = new Vector(0, 0);
         ref_velocity.ref = originalVelocity.mul(-(elasticity < MAX_EMERGENCY_ELASTICITY ? elasticity : MAX_EMERGENCY_ELASTICITY));
         if (emergency) {
-            this.emergencyCollideShapeWorld(shape, { ref: originalDelta }, ref_velocity, world);
+            emergencyCollideShapeWorld(shape, { ref: originalDelta }, ref_velocity, world);
         }
         return lastContact;
     }
@@ -301,10 +301,10 @@ var CollisionDetector;
     // overlaps
     function overlapShapePlayers(shape) {
         var players = [];
-        if (this.overlapShapes(gameState.playerA.getShape(), shape)) {
+        if (overlapShapes(gameState.playerA.getShape(), shape)) {
             players.push(gameState.playerA);
         }
-        if (this.overlapShapes(gameState.playerB.getShape(), shape)) {
+        if (overlapShapes(gameState.playerB.getShape(), shape)) {
             players.push(gameState.playerB);
         }
         return players;
@@ -317,7 +317,7 @@ var CollisionDetector;
     ;
     // on-edges
     function onEntityWorld(entity, edgeQuad, world) {
-        this.penetrationEntityWorld(entity, edgeQuad, world);
+        penetrationEntityWorld(entity, edgeQuad, world);
         edgeQuad.throwOutIfGreaterThan(ON_MARGIN);
     }
     CollisionDetector.onEntityWorld = onEntityWorld;
@@ -329,8 +329,8 @@ var CollisionDetector;
         }
         var edges = world.getEdgesInAabb(new AABB(eye, target), EDGE_ENEMIES);
         var minLosProportion = 1.1;
-        var ref_edgeProportion = {}; // throwaway
-        var ref_contactPoint = {}; // throwaway
+        var ref_edgeProportion = { ref: null }; // throwaway
+        var ref_contactPoint = { ref: null }; // throwaway
         var firstEdge = null;
         for (var it = 0; it < edges.length; it++) {
             // this is only for edges that face towards the eye
@@ -340,7 +340,7 @@ var CollisionDetector;
             // find the edge closest to the viewer
             var ref_losProportion = {};
             // if the LOS is not blocked by this edge, then ignore this edge
-            if (!this.intersectSegments(new Segment(eye, target), edges[it].segment, ref_losProportion, ref_edgeProportion, ref_contactPoint)) {
+            if (!intersectSegments(new Segment(eye, target), edges[it].segment, ref_losProportion, ref_edgeProportion, ref_contactPoint)) {
                 continue;
             }
             // if another edge was already closer, ignore this edge
@@ -365,8 +365,13 @@ var CollisionDetector;
         var edges = world.getEdgesInAabb(boundingBox, entity.getColor());
         var distance = Number.POSITIVE_INFINITY;
         for (var it = 0; it < edges.length; it++) {
-            var ref_thisShapePoint = {}, ref_thisWorldPoint = {};
-            var thisDistance = this.closestToShapeSegment(shape, ref_thisShapePoint, ref_thisWorldPoint, edges[it].segment);
+            var ref_thisShapePoint = {
+                ref: null
+            };
+            var ref_thisWorldPoint = {
+                ref: null
+            };
+            var thisDistance = closestToShapeSegment(shape, ref_thisShapePoint, ref_thisWorldPoint, edges[it].segment);
             if (thisDistance < distance) {
                 distance = thisDistance;
                 ref_shapePoint.ref = ref_thisShapePoint.ref;
@@ -466,19 +471,19 @@ var CollisionDetector;
     function intersectShapeSegment(shape, segment) {
         switch (shape.getType()) {
             case SHAPE_CIRCLE:
-                return this.intersectCircleSegment(shape, segment);
+                return intersectCircleSegment(shape, segment);
             case SHAPE_AABB:
-                return this.intersectPolygonSegment(shape.getPolygon(), segment);
+                return intersectPolygonSegment(shape.getPolygon(), segment);
             case SHAPE_POLYGON:
-                return this.intersectPolygonSegment(shape, segment);
+                return intersectPolygonSegment(shape, segment);
         }
         alert('assertion failed in CollisionDetector.intersectShapeSegment');
     }
     CollisionDetector.intersectShapeSegment = intersectShapeSegment;
     ;
     function intersectCircleSegment(circle, segment) {
-        var ref_lineProportion0 = {}, ref_lineProportion1 = {};
-        if (!this.intersectCircleLine(circle, segment, ref_lineProportion0, ref_lineProportion1)) {
+        var ref_lineProportion0 = { ref: null }, ref_lineProportion1 = { ref: null };
+        if (!intersectCircleLine(circle, segment, ref_lineProportion0, ref_lineProportion1)) {
             return false;
         }
         if (ref_lineProportion0.ref >= 0 && ref_lineProportion0.ref <= 1) {
@@ -492,7 +497,7 @@ var CollisionDetector;
         // may fail on large enemies (if the segment is inside)
         var ref_segmentProportion0 = {}, ref_segmentProportion1 = {}, ref_contactPoint = {};
         for (var i = 0; i < polygon.vertices.length; i++) {
-            if (this.intersectSegments(polygon.getSegment(i), segment, ref_segmentProportion0, ref_segmentProportion1, ref_contactPoint)) {
+            if (intersectSegments(polygon.getSegment(i), segment, ref_segmentProportion0, ref_segmentProportion1, ref_contactPoint)) {
                 return true;
             }
         }
@@ -509,11 +514,11 @@ var CollisionDetector;
         }
         switch (shape.getType()) {
             case SHAPE_CIRCLE:
-                return this.collideCircleSegment(shape, deltaPosition, segment);
+                return collideCircleSegment(shape, deltaPosition, segment);
             case SHAPE_AABB:
-                return this.collidePolygonSegment(shape.getPolygon(), deltaPosition, segment);
+                return collidePolygonSegment(shape.getPolygon(), deltaPosition, segment);
             case SHAPE_POLYGON:
-                return this.collidePolygonSegment(shape, deltaPosition, segment);
+                return collidePolygonSegment(shape, deltaPosition, segment);
         }
         alert('assertion failed in CollisionDetector.collideShapeSegment');
     }
@@ -538,15 +543,15 @@ var CollisionDetector;
         var startedOutside = circleInnermost.sub(segment.start).dot(segmentNormal) > 0;
         // if the circle started outside this segment, then it might have hit the flat part of this segment
         if (startedOutside) {
-            var ref_segmentProportion = {}, ref_proportionOfDelta = {}, ref_contactPoint = {};
-            if (this.intersectSegments(segment, new Segment(circleInnermost, newCircleInnermost), ref_segmentProportion, ref_proportionOfDelta, ref_contactPoint)) {
+            var ref_segmentProportion = { ref: null }, ref_proportionOfDelta = { ref: null }, ref_contactPoint = { ref: null };
+            if (intersectSegments(segment, new Segment(circleInnermost, newCircleInnermost), ref_segmentProportion, ref_proportionOfDelta, ref_contactPoint)) {
                 // we can return this because the circle will always hit the flat part before it hits an end
                 return new Contact(ref_contactPoint.ref, segmentNormal, ref_proportionOfDelta.ref);
             }
         }
         // get the contacts that occurred when the edge of the circle hit an endpoint of this edge.
-        var startContact = this.collideCirclePoint(circle, deltaPosition, segment.start);
-        var endContact = this.collideCirclePoint(circle, deltaPosition, segment.end);
+        var startContact = collideCirclePoint(circle, deltaPosition, segment.start);
+        var endContact = collideCirclePoint(circle, deltaPosition, segment.end);
         // select the collision that occurred first
         if (!startContact && !endContact) {
             return null;
@@ -573,10 +578,11 @@ var CollisionDetector;
         // us to try to solve a quadratic with a second order coefficient of zero and put NaNs everywhere
         var delta = deltaPosition.length();
         if (delta < 0.0000001) {
-            return false;
+            // return false;
+            return null;
         }
         // if these don't intersect at all, then forget about it.
-        if (!this.intersectCircleLine(circle, new Segment(point, point.sub(deltaPosition)), ref_deltaProportion0, ref_deltaProportion1)) {
+        if (!intersectCircleLine(circle, new Segment(point, point.sub(deltaPosition)), ref_deltaProportion0, ref_deltaProportion1)) {
             return null;
         }
         // check that this actually happens inside of the segment.
@@ -591,11 +597,11 @@ var CollisionDetector;
     ;
     function collidePolygonSegment(polygon, deltaPosition, segment) {
         // use these for storing parameters about the collision.
-        var ref_edgeProportion = {}; // throwaway
-        var ref_deltaProportion = {}; // how far into the timestep we get before colliding
-        var ref_contactPoint = {}; // where we collide
+        var ref_edgeProportion = { ref: null }; // throwaway
+        var ref_deltaProportion = { ref: null }; // how far into the timestep we get before colliding
+        var ref_contactPoint = { ref: null }; // where we collide
         // if this was touching the segment before, NO COLLISION
-        if (this.intersectPolygonSegment(polygon, segment)) {
+        if (intersectPolygonSegment(polygon, segment)) {
             return null;
         }
         // the first instance of contact
@@ -613,7 +619,7 @@ var CollisionDetector;
                     continue;
                 }
                 // if these don't intersect, ignore this edge
-                if (!this.intersectSegments(polygonSegment, new Segment(edgeEndpoints[j], edgeEndpoints[j].sub(deltaPosition)), ref_edgeProportion, ref_deltaProportion, ref_contactPoint)) {
+                if (!intersectSegments(polygonSegment, new Segment(edgeEndpoints[j], edgeEndpoints[j].sub(deltaPosition)), ref_edgeProportion, ref_deltaProportion, ref_contactPoint)) {
                     continue;
                 }
                 // if this contact is sooner, or if there wasn't one before, then we'll use this one
@@ -626,7 +632,7 @@ var CollisionDetector;
         for (i = 0; i < polygon.vertices.length; i++) {
             var vertex = polygon.getVertex(i);
             // if these don't intersect, ignore this edge
-            if (!this.intersectSegments(segment, new Segment(vertex, vertex.add(deltaPosition)), ref_edgeProportion, ref_deltaProportion, ref_contactPoint)) {
+            if (!intersectSegments(segment, new Segment(vertex, vertex.add(deltaPosition)), ref_edgeProportion, ref_deltaProportion, ref_contactPoint)) {
                 continue;
             }
             // if this contact is sooner, or if there wasn't one before, then we'll use this one
@@ -664,7 +670,7 @@ var CollisionDetector;
                 if (!cellShape) {
                     continue;
                 }
-                if (this.overlapShapes(newShape, cellShape)) {
+                if (overlapShapes(newShape, cellShape)) {
                     push = true;
                     break;
                 }
@@ -721,13 +727,13 @@ var CollisionDetector;
         var shape1Type = shape1Pointer.getType();
         // if they're both circles
         if (shape0Type == SHAPE_CIRCLE && shape1Type == SHAPE_CIRCLE) {
-            result = this.overlapCircles(shape0Pointer, shape1Pointer);
+            result = overlapCircles(shape0Pointer, shape1Pointer);
         }
         else if (shape0Type == SHAPE_CIRCLE && shape1Type == SHAPE_POLYGON) {
-            result = this.overlapCirclePolygon(shape0Pointer, shape1Pointer);
+            result = overlapCirclePolygon(shape0Pointer, shape1Pointer);
         }
         else if (shape0Type == SHAPE_POLYGON && shape1Type == SHAPE_POLYGON) {
-            result = this.overlapPolygons(shape0Pointer, shape1Pointer);
+            result = overlapPolygons(shape0Pointer, shape1Pointer);
         }
         else {
             alert('assertion failed in CollisionDetector.overlapShapes');
@@ -746,7 +752,7 @@ var CollisionDetector;
         var len = polygon.vertices.length;
         for (var i = 0; i < len; ++i) {
             // if a segment of the polygon crosses the edge of the circle
-            if (this.intersectCircleSegment(circle, polygon.getSegment(i))) {
+            if (intersectCircleSegment(circle, polygon.getSegment(i))) {
                 return true;
             }
             // if a vertex of the polygon is inside the circle
@@ -773,13 +779,13 @@ var CollisionDetector;
         var len1 = polygon1.vertices.length;
         // see if any corner of polygon 0 is inside of polygon 1
         for (i = 0; i < len0; ++i) {
-            if (this.containsPointPolygon(polygon0.vertices[i].add(polygon0.center), polygon1)) {
+            if (containsPointPolygon(polygon0.vertices[i].add(polygon0.center), polygon1)) {
                 return true;
             }
         }
         // see if any corner of polygon 1 is inside of polygon 0
         for (i = 0; i < len1; ++i) {
-            if (this.containsPointPolygon(polygon1.vertices[i].add(polygon1.center), polygon0)) {
+            if (containsPointPolygon(polygon1.vertices[i].add(polygon1.center), polygon0)) {
                 return true;
             }
         }
@@ -804,22 +810,22 @@ var CollisionDetector;
     // DISTANCES
     function distanceShapeSegment(shape, segment) {
         // if the two are intersecting, the distance is obviously 0
-        if (this.intersectShapeSegment(shape, segment)) {
+        if (intersectShapeSegment(shape, segment)) {
             return 0;
         }
         var ref_shapePoint = {}, ref_worldPoint = {};
-        return this.closestToShapeSegment(shape, ref_shapePoint, ref_worldPoint, segment);
+        return closestToShapeSegment(shape, ref_shapePoint, ref_worldPoint, segment);
     }
     CollisionDetector.distanceShapeSegment = distanceShapeSegment;
     ;
     function distanceShapePoint(shape, point) {
         switch (shape.getType()) {
             case SHAPE_CIRCLE:
-                return this.distanceCirclePoint(shape, point);
+                return distanceCirclePoint(shape, point);
             case SHAPE_AABB:
-                return this.distancePolygonPoint(shape.getPolygon(), point);
+                return distancePolygonPoint(shape.getPolygon(), point);
             case SHAPE_POLYGON:
-                return this.distancePolygonPoint(shape, point);
+                return distancePolygonPoint(shape, point);
         }
         alert('assertion failed in CollisionDetector.distanceShapePoint');
     }
@@ -832,14 +838,14 @@ var CollisionDetector;
     CollisionDetector.distanceCirclePoint = distanceCirclePoint;
     ;
     function distancePolygonPoint(polygon, point) {
-        var ref_polygonEdgeProportion = {}, ref_distanceProportion = {};
-        var ref_closestPointOnPolygonEdge = {}; //throwaway
+        var ref_polygonEdgeProportion = { ref: null }, ref_distanceProportion = { ref: null };
+        var ref_closestPointOnPolygonEdge = { ref: null }; //throwaway
         var distance = Number.POSITIVE_INFINITY;
         // see how close each endpoint of the segment is to a point on the middle of a polygon edge
         for (var i = 0; i < polygon.vertices.length; i++) {
             var polygonSegment = polygon.getSegment(i);
             // find where this segment endpoint projects onto the polygon edge
-            this.intersectSegments(polygonSegment, new Segment(point, point.add(polygonSegment.normal)), ref_polygonEdgeProportion, ref_distanceProportion, ref_closestPointOnPolygonEdge);
+            intersectSegments(polygonSegment, new Segment(point, point.add(polygonSegment.normal)), ref_polygonEdgeProportion, ref_distanceProportion, ref_closestPointOnPolygonEdge);
             // if this projects beyond the endpoints of the polygon's edge, ignore it
             if (ref_polygonEdgeProportion.ref < 0 || ref_polygonEdgeProportion.ref > 1) {
                 continue;
@@ -857,11 +863,11 @@ var CollisionDetector;
     function closestToShapeSegment(shape, ref_shapePoint, ref_segmentPoint, segment) {
         switch (shape.getType()) {
             case SHAPE_CIRCLE:
-                return this.closestToCircleSegment(shape, ref_shapePoint, ref_segmentPoint, segment);
+                return closestToCircleSegment(shape, ref_shapePoint, ref_segmentPoint, segment);
             case SHAPE_AABB:
-                return this.closestToPolygonSegment(shape.getPolygon(), ref_shapePoint, ref_segmentPoint, segment);
+                return closestToPolygonSegment(shape.getPolygon(), ref_shapePoint, ref_segmentPoint, segment);
             case SHAPE_POLYGON:
-                return this.closestToPolygonSegment(shape, ref_shapePoint, ref_segmentPoint, segment);
+                return closestToPolygonSegment(shape, ref_shapePoint, ref_segmentPoint, segment);
         }
         alert('assertion failed in CollisionDetector.closestToShapeSegment');
     }
@@ -869,8 +875,8 @@ var CollisionDetector;
     ;
     function closestToCircleSegment(circle, ref_shapePoint, ref_segmentPoint, segment) {
         // see if the closest point is in the middle of the segment
-        var ref_segmentProportion = {}, ref_projectProportion = {};
-        this.intersectSegments(segment, new Segment(circle.center, circle.center.sub(segment.normal)), ref_segmentProportion, ref_projectProportion, ref_segmentPoint);
+        var ref_segmentProportion = { ref: null }, ref_projectProportion = { ref: null };
+        intersectSegments(segment, new Segment(circle.center, circle.center.sub(segment.normal)), ref_segmentProportion, ref_projectProportion, ref_segmentPoint);
         // if the closest point is in the middle of the segment
         if (ref_segmentProportion.ref >= 0 && ref_segmentProportion.ref <= 1) {
             // this returns the distance of the circle from the segment, along the normal
@@ -912,12 +918,12 @@ var CollisionDetector;
                 }
             }
         }
-        var ref_edgeProportion = {}, ref_polygonDistanceProportion = {}, ref_closestPoint = {};
+        var ref_edgeProportion = { ref: null }, ref_polygonDistanceProportion = { ref: null }, ref_closestPoint = { ref: null };
         // see how close each vertex of the polygon is to a point in the middle of the edge
         for (var i = 0; i < polygon.vertices.length; i++) {
             var polygonPoint = polygon.getVertex(i);
             // find where this polygon vertex projects onto the edge
-            this.intersectSegments(segment, new Segment(polygonPoint, polygonPoint.sub(segment.normal)), ref_edgeProportion, ref_polygonDistanceProportion, ref_closestPoint);
+            intersectSegments(segment, new Segment(polygonPoint, polygonPoint.sub(segment.normal)), ref_edgeProportion, ref_polygonDistanceProportion, ref_closestPoint);
             // if this projects beyond the endpoints of the edge, ignore it
             if (ref_edgeProportion.ref < 0 || ref_edgeProportion.ref > 1) {
                 continue;
@@ -931,14 +937,14 @@ var CollisionDetector;
                 ref_shapePoint.ref = polygonPoint;
             }
         }
-        var ref_polygonEdgeProportion = {}, ref_distanceProportion = {};
+        var ref_polygonEdgeProportion = { ref: null }, ref_distanceProportion = { ref: null };
         // see how close each endpoint of the segment is to a point on the middle of a polygon edge
         for (var i = 0; i < polygon.vertices.length; i++) {
             var polygonSegment = polygon.getSegment(i);
             for (var j = 0; j < 2; j++) {
                 var thisSegmentPoint = j == 0 ? segment.start : segment.end;
                 // find where this segment endpoint projects onto the polygon edge
-                this.intersectSegments(polygonSegment, new Segment(thisSegmentPoint, thisSegmentPoint.add(polygonSegment.normal)), ref_polygonEdgeProportion, ref_distanceProportion, ref_closestPoint);
+                intersectSegments(polygonSegment, new Segment(thisSegmentPoint, thisSegmentPoint.add(polygonSegment.normal)), ref_polygonEdgeProportion, ref_distanceProportion, ref_closestPoint);
                 // if this projects beyond the endpoints of the polygon's edge, ignore it
                 if (ref_polygonEdgeProportion.ref < 0 || ref_polygonEdgeProportion.ref > 1) {
                     continue;
@@ -962,12 +968,12 @@ var CollisionDetector;
         var edges = world.getEdgesInAabb(shape.getAabb().expand(0.1), entity.getColor());
         for (var it = 0; it < edges.length; it++) {
             // if the polygon isn't close to this segment, forget about it
-            var thisDistance = this.distanceShapeSegment(shape, edges[it].segment);
+            var thisDistance = distanceShapeSegment(shape, edges[it].segment);
             if (thisDistance > 0.01) {
                 continue;
             }
             // if the penetration is negative, ignore this segment
-            var thisPenetration = this.penetrationShapeSegment(shape, edges[it].segment);
+            var thisPenetration = penetrationShapeSegment(shape, edges[it].segment);
             if (thisPenetration < 0) {
                 continue;
             }
@@ -979,11 +985,11 @@ var CollisionDetector;
     function penetrationShapeSegment(shape, segment) {
         switch (shape.getType()) {
             case SHAPE_CIRCLE:
-                return this.penetrationCircleSegment(shape, segment);
+                return penetrationCircleSegment(shape, segment);
             case SHAPE_AABB:
-                return this.penetrationPolygonSegment(shape.getPolygon(), segment);
+                return penetrationPolygonSegment(shape.getPolygon(), segment);
             case SHAPE_POLYGON:
-                return this.penetrationPolygonSegment(shape, segment);
+                return penetrationPolygonSegment(shape, segment);
         }
         alert('assertion failed in CollisionDetector.penetrationShapeSegment');
     }
@@ -1006,7 +1012,7 @@ var CollisionDetector;
         for (var i = 0; i < polygon.vertices.length; i++) {
             var vertex = polygon.getVertex(i);
             // find where this polygon point projects onto the segment
-            this.intersectSegments(segment, new Segment(vertex, vertex.sub(segment.normal)), ref_edgeProportion, ref_penetrationProportion, ref_closestPointOnSegment);
+            intersectSegments(segment, new Segment(vertex, vertex.sub(segment.normal)), ref_edgeProportion, ref_penetrationProportion, ref_closestPointOnSegment);
             // if this point projects onto the segment outside of its endpoints, don't consider this point to be projected
             // into this edge
             if (ref_edgeProportion.ref < 0 || ref_edgeProportion.ref > 1) {
@@ -3514,7 +3520,7 @@ var Player = (function (_super) {
             this.state = PLAYER_STATE_RIGHT_WALL;
         else
             this.state = PLAYER_STATE_AIR;
-        var ref_closestPointWorld = {}, ref_closestPointShape = {};
+        var ref_closestPointWorld = { ref: null }, ref_closestPointShape = { ref: null };
         var closestPointDistance = CollisionDetector.closestToEntityWorld(this, 0.1, ref_closestPointShape, ref_closestPointWorld, gameState.world);
         if (this.state == PLAYER_STATE_LEFT_WALL || this.state == PLAYER_STATE_RIGHT_WALL) {
             // apply wall friction if the player is sliding down
@@ -3665,7 +3671,7 @@ var Player = (function (_super) {
             }
         }
         else if (this.state == PLAYER_STATE_CLAMBER) {
-            var ref_shapePoint = {}, ref_worldPoint = {};
+            var ref_shapePoint = { ref: null }, ref_worldPoint = { ref: null };
             CollisionDetector.closestToEntityWorld(this, 2, ref_shapePoint, ref_worldPoint, gameState.world);
             // this should be from -0.5 to 0.5, so add 0.5 so it is from 0 to 1
             var percent = (this.getCenter().y - ref_worldPoint.ref.y) / PLAYER_HEIGHT;
@@ -3792,7 +3798,7 @@ var ShockHawk = (function (_super) {
         };
         return _this;
     }
-    ShockHawk.prototype.getTarget = function () { return target === gameState.playerB; };
+    ShockHawk.prototype.getTarget = function () { return this.target === gameState.playerB; };
     ShockHawk.prototype.setTarget = function (player) { this.target = player; };
     ShockHawk.prototype.avoidsSpawn = function () {
         if (this.chasing) {

@@ -15,11 +15,14 @@ class Polygon {
     vertices;
     segments = [];
     boundingBox;
-    constructor() {
+    constructor(vertices: Vector[]) {
         // center is the first argument, the next arguments are the vertices relative to the center
-        arguments = Array.prototype.slice.call(arguments);
-        this.center = arguments.shift();
-        this.vertices = arguments;
+        //arguments = Array.prototype.slice.call(arguments);
+        //this.center = arguments.shift();
+        //this.vertices = arguments;
+        vertices = Array.prototype.slice.call(vertices);
+        this.center = vertices.shift();
+        this.vertices = vertices;
 
         // this.segments = [];
         for (var i = 0; i < this.vertices.length; i++) {
@@ -31,7 +34,7 @@ class Polygon {
     }
 
     copy() {
-        var polygon = new Polygon(this.center, this.vertices[0]);
+        var polygon = new Polygon([this.center, this.vertices[0]]);
         polygon.vertices = this.vertices;
         polygon.segments = this.segments;
         polygon.initializeBounds();

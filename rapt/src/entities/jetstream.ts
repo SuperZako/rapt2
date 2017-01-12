@@ -71,7 +71,7 @@ class JetStream extends SpawningEnemy {
         for (var side = -1; side <= 1; side += 2) {
             for (var i = 0; i < NUM_BARRELS; i++) {
                 var theta = i * (2 * Math.PI / NUM_BARRELS) - side * angle;
-                var reload = (this.reloadAnimation - i * side) / NUM_BARRELS + (side == 1) * 0.5;
+                var reload = (this.reloadAnimation - i * side) / NUM_BARRELS + (side === 1) * 0.5;
 
                 // adjust for even NUM_BARRELS
                 if (side == 1 && !(NUM_BARRELS & 1)) {

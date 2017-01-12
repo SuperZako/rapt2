@@ -85,11 +85,11 @@ class Cell {
         var v10 = new Vector(1, 0);
         var v11 = new Vector(1, 1);
         switch (this.type) {
-            case CELL_SOLID: return new Polygon(vxy, v00, v10, v11, v01);
-            case CELL_FLOOR_DIAG_LEFT: return new Polygon(vxy, v00, v10, v01);
-            case CELL_FLOOR_DIAG_RIGHT: return new Polygon(vxy, v00, v10, v11);
-            case CELL_CEIL_DIAG_LEFT: return new Polygon(vxy, v00, v11, v01);
-            case CELL_CEIL_DIAG_RIGHT: return new Polygon(vxy, v01, v10, v11);
+            case CELL_SOLID: return new Polygon([vxy, v00, v10, v11, v01]);
+            case CELL_FLOOR_DIAG_LEFT: return new Polygon([vxy, v00, v10, v01]);
+            case CELL_FLOOR_DIAG_RIGHT: return new Polygon([vxy, v00, v10, v11]);
+            case CELL_CEIL_DIAG_LEFT: return new Polygon([vxy, v00, v11, v01]);
+            case CELL_CEIL_DIAG_RIGHT: return new Polygon([vxy, v01, v10, v11]);
         }
         return null;
     }

@@ -179,7 +179,7 @@ namespace CollisionDetector {
             }
 
             // find the edge closest to the viewer
-            var ref_losProportion = {};
+            var ref_losProportion = { ref: null };
 
             // if the LOS is not blocked by this edge, then ignore this edge
             if (!intersectSegments(new Segment(eye, target), edges[it].segment, ref_losProportion, ref_edgeProportion, ref_contactPoint)) {
@@ -916,7 +916,7 @@ namespace CollisionDetector {
     };
     export function penetrationPolygonSegment(polygon, segment) {
         var innermost = Number.POSITIVE_INFINITY;
-        var ref_edgeProportion = {}, ref_penetrationProportion = {}, ref_closestPointOnSegment = {};
+        var ref_edgeProportion = { ref: null }, ref_penetrationProportion = { ref: null }, ref_closestPointOnSegment = { ref: null };
 
         // check the penetration of each vertex of the polygon
         for (var i = 0; i < polygon.vertices.length; i++) {

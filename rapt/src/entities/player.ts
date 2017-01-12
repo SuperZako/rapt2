@@ -27,29 +27,29 @@ var PLAYER_STATE_LEFT_WALL = 3;
 var PLAYER_STATE_RIGHT_WALL = 4;
 
 var runningKeyframes = [
-    new Keyframe(0, -5 / 50).add(5, -10, 65, -55, 20, 40, -20, -30, -30, 10),
-    new Keyframe(0, -2 / 50).add(5, -10, 35, -25, 0, 30, 18, -110, 0, 20),
-    new Keyframe(0, 0).add(5, -10, 10, -30, -20, 20, 60, -100, 10, 30),
+    new Keyframe(0, -5 / 50).add([5, -10, 65, -55, 20, 40, -20, -30, -30, 10]),
+    new Keyframe(0, -2 / 50).add([5, -10, 35, -25, 0, 30, 18, -110, 0, 20]),
+    new Keyframe(0, 0).add([5, -10, 10, -30, -20, 20, 60, -100, 10, 30]),
 
-    new Keyframe(0, -5 / 50).add(5, -10, -20, -30, -30, 10, 65, -55, 20, 40),
-    new Keyframe(0, -2 / 50).add(5, -10, 18, -110, 0, 20, 35, -25, 0, 30),
-    new Keyframe(0, 0).add(5, -10, 60, -100, 10, 30, 10, -30, -20, 20)
+    new Keyframe(0, -5 / 50).add([5, -10, -20, -30, -30, 10, 65, -55, 20, 40]),
+    new Keyframe(0, -2 / 50).add([5, -10, 18, -110, 0, 20, 35, -25, 0, 30]),
+    new Keyframe(0, 0).add([5, -10, 60, -100, 10, 30, 10, -30, -20, 20])
 ];
 var jumpingKeyframes = [
-    new Keyframe(0, 0).add(0, -10, 150, -170, -40, 30, -30, -20, 20, 150),
-    new Keyframe(0, 0).add(-20, 10, 60, -100, -80, 30, 30, -20, 30, 30)
+    new Keyframe(0, 0).add([0, -10, 150, -170, -40, 30, -30, -20, 20, 150]),
+    new Keyframe(0, 0).add([-20, 10, 60, -100, -80, 30, 30, -20, 30, 30])
 ];
 var wallSlidingKeyframe =
-    new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add(0, -10, 150, -130, 140, 50, 50, -30, 50, 130);
+    new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add([0, -10, 150, -130, 140, 50, 50, -30, 50, 130]);
 var crouchingKeyframe =
-    new Keyframe(0, -0.2).add(30, -30, 130, -110, -30, 40, 60, -120, 20, 20);
+    new Keyframe(0, -0.2).add([30, -30, 130, -110, -30, 40, 60, -120, 20, 20]);
 var fallingKeyframes = [
-    new Keyframe(0, 0).add(-20, 5, 10, -30, -120, -30, 40, -20, 120, 30),
-    new Keyframe(0, 0).add(-20, 5, 10, -30, -130, -60, 40, -20, 150, 50)
+    new Keyframe(0, 0).add([-20, 5, 10, -30, -120, -30, 40, -20, 120, 30]),
+    new Keyframe(0, 0).add([-20, 5, 10, -30, -130, -60, 40, -20, 150, 50])
 ];
 var clamberingKeyframes = [
-    new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add(0, -10, 150, -130, 140, 50, 50, -30, 50, 130),
-    new Keyframe(0, -0.2).add(30, -30, 160, -180, -30, 40, 20, -10, 20, 20)
+    new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add([0, -10, 150, -130, 140, 50, 50, -30, 50, 130]),
+    new Keyframe(0, -0.2).add([30, -30, 160, -180, -30, 40, 20, -10, 20, 20])
 ];
 
 // enum PlayerSpriteIndex
@@ -175,11 +175,11 @@ class Player extends Entity {
         // the player is modeled as a triangle so it behaves like a
         // box on top (so it has width) and behaves like a point on
         // bottom (so it slides down when walking off ledges)
-        this.polygon = new Polygon(
+        this.polygon = new Polygon([
             center,
             new Vector(PLAYER_WIDTH / 2, PLAYER_HEIGHT / 2),
             new Vector(-PLAYER_WIDTH / 2, PLAYER_HEIGHT / 2),
-            new Vector(0, -PLAYER_HEIGHT / 2)
+            new Vector(0, -PLAYER_HEIGHT / 2)]
         );
 
         // physics stuff
@@ -556,7 +556,7 @@ class Player extends Entity {
                 frame = Keyframe.lerp(fallingKeyframes, this.fallingFrame);
             }
         } else if (this.state == PLAYER_STATE_CLAMBER) {
-            var ref_shapePoint = { ref: null }, ref_worldPoint = { ref: null};
+            var ref_shapePoint = { ref: null }, ref_worldPoint = { ref: null };
             CollisionDetector.closestToEntityWorld(this, 2, ref_shapePoint, ref_worldPoint, gameState.world);
 
             // this should be from -0.5 to 0.5, so add 0.5 so it is from 0 to 1

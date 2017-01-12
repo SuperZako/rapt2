@@ -39,8 +39,8 @@ class WallCrawler extends WalkingEnemy {
 
     // Rotates about the closest point in the world
     move(seconds) {
-        var ref_shapePoint = {};
-        var ref_worldPoint = {};
+        var ref_shapePoint = { ref: null };
+        var ref_worldPoint = { ref: null };
         var closestPointDist = CollisionDetector.closestToEntityWorld(this, 2, ref_shapePoint, ref_worldPoint, gameState.world);
 
         if (closestPointDist < Number.POSITIVE_INFINITY) {

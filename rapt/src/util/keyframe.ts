@@ -9,9 +9,12 @@ class Keyframe {
         // this.angles = [];
     }
 
-    add(/* one or more angles */) {
-        for (var i = 0; i < arguments.length; i++) {
-            this.angles.push(arguments[i] * Math.PI / 180);
+    add(angles: number[]) {
+        //for (var i = 0; i < arguments.length; i++) {
+        //    this.angles.push(arguments[i] * Math.PI / 180);
+        //}
+        for (var i = 0; i < angles.length; i++) {
+            this.angles.push(angles[i] * Math.PI / 180);
         }
         return this;
     }

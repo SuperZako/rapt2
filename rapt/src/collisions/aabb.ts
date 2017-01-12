@@ -1,5 +1,5 @@
 ///<reference path="../util/vector.ts" /> 
-
+///<reference path="../collisions/polygon.ts" /> 
 
 // class AABB extends Shape
 class AABB {
@@ -34,11 +34,11 @@ class AABB {
     getPolygon() {
         var center = this.getCenter();
         var halfSize = this.size.div(2);
-        return new Polygon(center,
+        return new Polygon([center,
             new Vector(+halfSize.x, +halfSize.y),
             new Vector(-halfSize.x, +halfSize.y),
             new Vector(-halfSize.x, -halfSize.y),
-            new Vector(+halfSize.x, -halfSize.y));
+            new Vector(+halfSize.x, -halfSize.y)]);
     }
     getType() {
         return SHAPE_AABB;

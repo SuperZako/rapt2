@@ -78,7 +78,83 @@ var Vector = (function () {
     ;
     return Vector;
 }());
+/**
+  *  For the polygon class, the segments and the bounding box are all relative to the center of the polygon.
+  *  That is, when the polygon moves, the center is the only thing that changes.  This is to prevent
+  *  floating-point arithmetic errors that would be caused by maintaining several sets of absolute coordinates.
+  *
+  *  Segment i goes from vertex i to vertex ((i + 1) % vertices.length)
+  *
+  *  When making a new polygon, please declare the vertices in counterclockwise order.	I'm not sure what will
+  *  happen if you don't do that.
+  */
+// class Polygon extends Shape
+var Polygon = (function () {
+    function Polygon(vertices) {
+        this.segments = [];
+        // center is the first argument, the next arguments are the vertices relative to the center
+        //arguments = Array.prototype.slice.call(arguments);
+        //this.center = arguments.shift();
+        //this.vertices = arguments;
+        vertices = Array.prototype.slice.call(vertices);
+        this.center = vertices.shift();
+        this.vertices = vertices;
+        // this.segments = [];
+        for (var i = 0; i < this.vertices.length; i++) {
+            this.segments.push(new Segment(this.vertices[i], this.vertices[(i + 1) % this.vertices.length]));
+        }
+        this.boundingBox = new AABB(this.vertices[0], this.vertices[0]);
+        this.initializeBounds();
+    }
+    Polygon.prototype.copy = function () {
+        var polygon = new Polygon([this.center, this.vertices[0]]);
+        polygon.vertices = this.vertices;
+        polygon.segments = this.segments;
+        polygon.initializeBounds();
+        return polygon;
+    };
+    Polygon.prototype.getType = function () {
+        return SHAPE_POLYGON;
+    };
+    Polygon.prototype.moveBy = function (delta) {
+        this.center = this.center.add(delta);
+    };
+    Polygon.prototype.moveTo = function (destination) {
+        this.center = destination;
+    };
+    Polygon.prototype.getVertex = function (i) {
+        return this.vertices[i].add(this.center);
+    };
+    Polygon.prototype.getSegment = function (i) {
+        return this.segments[i].offsetBy(this.center);
+    };
+    Polygon.prototype.getAabb = function () {
+        return this.boundingBox.offsetBy(this.center);
+    };
+    Polygon.prototype.getCenter = function () {
+        return this.center;
+    };
+    // expand the aabb and the bounding circle to contain all vertices
+    Polygon.prototype.initializeBounds = function () {
+        for (var i = 0; i < this.vertices.length; i++) {
+            var vertex = this.vertices[i];
+            // expand the bounding box to include this vertex
+            this.boundingBox = this.boundingBox.include(vertex);
+        }
+    };
+    Polygon.prototype.draw = function (c) {
+        c.strokeStyle = 'black';
+        c.beginPath();
+        for (var i = 0; i < this.vertices.length; i++) {
+            c.lineTo(this.vertices[i].x + this.center.x, this.vertices[i].y + this.center.y);
+        }
+        c.closePath();
+        c.stroke();
+    };
+    return Polygon;
+}());
 ///<reference path="../util/vector.ts" /> 
+///<reference path="../collisions/polygon.ts" /> 
 // class AABB extends Shape
 var AABB = (function () {
     function AABB(lowerLeft, upperRight) {
@@ -109,7 +185,11 @@ var AABB = (function () {
     AABB.prototype.getPolygon = function () {
         var center = this.getCenter();
         var halfSize = this.size.div(2);
-        return new Polygon(center, new Vector(+halfSize.x, +halfSize.y), new Vector(-halfSize.x, +halfSize.y), new Vector(-halfSize.x, -halfSize.y), new Vector(+halfSize.x, -halfSize.y));
+        return new Polygon([center,
+            new Vector(+halfSize.x, +halfSize.y),
+            new Vector(-halfSize.x, +halfSize.y),
+            new Vector(-halfSize.x, -halfSize.y),
+            new Vector(+halfSize.x, -halfSize.y)]);
     };
     AABB.prototype.getType = function () {
         return SHAPE_AABB;
@@ -338,7 +418,7 @@ var CollisionDetector;
                 continue;
             }
             // find the edge closest to the viewer
-            var ref_losProportion = {};
+            var ref_losProportion = { ref: null };
             // if the LOS is not blocked by this edge, then ignore this edge
             if (!intersectSegments(new Segment(eye, target), edges[it].segment, ref_losProportion, ref_edgeProportion, ref_contactPoint)) {
                 continue;
@@ -1007,7 +1087,7 @@ var CollisionDetector;
     ;
     function penetrationPolygonSegment(polygon, segment) {
         var innermost = Number.POSITIVE_INFINITY;
-        var ref_edgeProportion = {}, ref_penetrationProportion = {}, ref_closestPointOnSegment = {};
+        var ref_edgeProportion = { ref: null }, ref_penetrationProportion = { ref: null }, ref_closestPointOnSegment = { ref: null };
         // check the penetration of each vertex of the polygon
         for (var i = 0; i < polygon.vertices.length; i++) {
             var vertex = polygon.getVertex(i);
@@ -1067,78 +1147,6 @@ var EdgeQuad = (function () {
 }());
 // this is a global because we only ever need one and allocations are expensive
 var edgeQuad = new EdgeQuad();
-/**
-  *  For the polygon class, the segments and the bounding box are all relative to the center of the polygon.
-  *  That is, when the polygon moves, the center is the only thing that changes.  This is to prevent
-  *  floating-point arithmetic errors that would be caused by maintaining several sets of absolute coordinates.
-  *
-  *  Segment i goes from vertex i to vertex ((i + 1) % vertices.length)
-  *
-  *  When making a new polygon, please declare the vertices in counterclockwise order.	I'm not sure what will
-  *  happen if you don't do that.
-  */
-// class Polygon extends Shape
-var Polygon = (function () {
-    function Polygon() {
-        this.segments = [];
-        // center is the first argument, the next arguments are the vertices relative to the center
-        arguments = Array.prototype.slice.call(arguments);
-        this.center = arguments.shift();
-        this.vertices = arguments;
-        // this.segments = [];
-        for (var i = 0; i < this.vertices.length; i++) {
-            this.segments.push(new Segment(this.vertices[i], this.vertices[(i + 1) % this.vertices.length]));
-        }
-        this.boundingBox = new AABB(this.vertices[0], this.vertices[0]);
-        this.initializeBounds();
-    }
-    Polygon.prototype.copy = function () {
-        var polygon = new Polygon(this.center, this.vertices[0]);
-        polygon.vertices = this.vertices;
-        polygon.segments = this.segments;
-        polygon.initializeBounds();
-        return polygon;
-    };
-    Polygon.prototype.getType = function () {
-        return SHAPE_POLYGON;
-    };
-    Polygon.prototype.moveBy = function (delta) {
-        this.center = this.center.add(delta);
-    };
-    Polygon.prototype.moveTo = function (destination) {
-        this.center = destination;
-    };
-    Polygon.prototype.getVertex = function (i) {
-        return this.vertices[i].add(this.center);
-    };
-    Polygon.prototype.getSegment = function (i) {
-        return this.segments[i].offsetBy(this.center);
-    };
-    Polygon.prototype.getAabb = function () {
-        return this.boundingBox.offsetBy(this.center);
-    };
-    Polygon.prototype.getCenter = function () {
-        return this.center;
-    };
-    // expand the aabb and the bounding circle to contain all vertices
-    Polygon.prototype.initializeBounds = function () {
-        for (var i = 0; i < this.vertices.length; i++) {
-            var vertex = this.vertices[i];
-            // expand the bounding box to include this vertex
-            this.boundingBox = this.boundingBox.include(vertex);
-        }
-    };
-    Polygon.prototype.draw = function (c) {
-        c.strokeStyle = 'black';
-        c.beginPath();
-        for (var i = 0; i < this.vertices.length; i++) {
-            c.lineTo(this.vertices[i].x + this.center.x, this.vertices[i].y + this.center.y);
-        }
-        c.closePath();
-        c.stroke();
-    };
-    return Polygon;
-}());
 // class Segment
 var Segment = (function () {
     function Segment(start, end) {
@@ -2784,7 +2792,7 @@ var JetStream = (function (_super) {
         for (var side = -1; side <= 1; side += 2) {
             for (var i = 0; i < NUM_BARRELS; i++) {
                 var theta = i * (2 * Math.PI / NUM_BARRELS) - side * angle;
-                var reload = (this.reloadAnimation - i * side) / NUM_BARRELS + (side == 1) * 0.5;
+                var reload = (this.reloadAnimation - i * side) / NUM_BARRELS + (side === 1) * 0.5;
                 // adjust for even NUM_BARRELS
                 if (side == 1 && !(NUM_BARRELS & 1)) {
                     theta += Math.PI / NUM_BARRELS;
@@ -3188,9 +3196,12 @@ var Keyframe = (function () {
         this.center = new Vector(x, y);
         // this.angles = [];
     }
-    Keyframe.prototype.add = function () {
-        for (var i = 0; i < arguments.length; i++) {
-            this.angles.push(arguments[i] * Math.PI / 180);
+    Keyframe.prototype.add = function (angles) {
+        //for (var i = 0; i < arguments.length; i++) {
+        //    this.angles.push(arguments[i] * Math.PI / 180);
+        //}
+        for (var i = 0; i < angles.length; i++) {
+            this.angles.push(angles[i] * Math.PI / 180);
         }
         return this;
     };
@@ -3236,26 +3247,26 @@ var PLAYER_STATE_CLAMBER = 2;
 var PLAYER_STATE_LEFT_WALL = 3;
 var PLAYER_STATE_RIGHT_WALL = 4;
 var runningKeyframes = [
-    new Keyframe(0, -5 / 50).add(5, -10, 65, -55, 20, 40, -20, -30, -30, 10),
-    new Keyframe(0, -2 / 50).add(5, -10, 35, -25, 0, 30, 18, -110, 0, 20),
-    new Keyframe(0, 0).add(5, -10, 10, -30, -20, 20, 60, -100, 10, 30),
-    new Keyframe(0, -5 / 50).add(5, -10, -20, -30, -30, 10, 65, -55, 20, 40),
-    new Keyframe(0, -2 / 50).add(5, -10, 18, -110, 0, 20, 35, -25, 0, 30),
-    new Keyframe(0, 0).add(5, -10, 60, -100, 10, 30, 10, -30, -20, 20)
+    new Keyframe(0, -5 / 50).add([5, -10, 65, -55, 20, 40, -20, -30, -30, 10]),
+    new Keyframe(0, -2 / 50).add([5, -10, 35, -25, 0, 30, 18, -110, 0, 20]),
+    new Keyframe(0, 0).add([5, -10, 10, -30, -20, 20, 60, -100, 10, 30]),
+    new Keyframe(0, -5 / 50).add([5, -10, -20, -30, -30, 10, 65, -55, 20, 40]),
+    new Keyframe(0, -2 / 50).add([5, -10, 18, -110, 0, 20, 35, -25, 0, 30]),
+    new Keyframe(0, 0).add([5, -10, 60, -100, 10, 30, 10, -30, -20, 20])
 ];
 var jumpingKeyframes = [
-    new Keyframe(0, 0).add(0, -10, 150, -170, -40, 30, -30, -20, 20, 150),
-    new Keyframe(0, 0).add(-20, 10, 60, -100, -80, 30, 30, -20, 30, 30)
+    new Keyframe(0, 0).add([0, -10, 150, -170, -40, 30, -30, -20, 20, 150]),
+    new Keyframe(0, 0).add([-20, 10, 60, -100, -80, 30, 30, -20, 30, 30])
 ];
-var wallSlidingKeyframe = new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add(0, -10, 150, -130, 140, 50, 50, -30, 50, 130);
-var crouchingKeyframe = new Keyframe(0, -0.2).add(30, -30, 130, -110, -30, 40, 60, -120, 20, 20);
+var wallSlidingKeyframe = new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add([0, -10, 150, -130, 140, 50, 50, -30, 50, 130]);
+var crouchingKeyframe = new Keyframe(0, -0.2).add([30, -30, 130, -110, -30, 40, 60, -120, 20, 20]);
 var fallingKeyframes = [
-    new Keyframe(0, 0).add(-20, 5, 10, -30, -120, -30, 40, -20, 120, 30),
-    new Keyframe(0, 0).add(-20, 5, 10, -30, -130, -60, 40, -20, 150, 50)
+    new Keyframe(0, 0).add([-20, 5, 10, -30, -120, -30, 40, -20, 120, 30]),
+    new Keyframe(0, 0).add([-20, 5, 10, -30, -130, -60, 40, -20, 150, 50])
 ];
 var clamberingKeyframes = [
-    new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add(0, -10, 150, -130, 140, 50, 50, -30, 50, 130),
-    new Keyframe(0, -0.2).add(30, -30, 160, -180, -30, 40, 20, -10, 20, 20)
+    new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add([0, -10, 150, -130, 140, 50, 50, -30, 50, 130]),
+    new Keyframe(0, -0.2).add([30, -30, 160, -180, -30, 40, 20, -10, 20, 20])
 ];
 // enum PlayerSpriteIndex
 var PLAYER_HEAD = 0;
@@ -3342,7 +3353,12 @@ var Player = (function (_super) {
         // the player is modeled as a triangle so it behaves like a
         // box on top (so it has width) and behaves like a point on
         // bottom (so it slides down when walking off ledges)
-        this.polygon = new Polygon(center, new Vector(PLAYER_WIDTH / 2, PLAYER_HEIGHT / 2), new Vector(-PLAYER_WIDTH / 2, PLAYER_HEIGHT / 2), new Vector(0, -PLAYER_HEIGHT / 2));
+        this.polygon = new Polygon([
+            center,
+            new Vector(PLAYER_WIDTH / 2, PLAYER_HEIGHT / 2),
+            new Vector(-PLAYER_WIDTH / 2, PLAYER_HEIGHT / 2),
+            new Vector(0, -PLAYER_HEIGHT / 2)
+        ]);
         // physics stuff
         this.velocity = new Vector(0, 0);
         this.actualVelocity = new Vector(0, 0);
@@ -4065,8 +4081,8 @@ var WallCrawler = (function (_super) {
     }
     // Rotates about the closest point in the world
     WallCrawler.prototype.move = function (seconds) {
-        var ref_shapePoint = {};
-        var ref_worldPoint = {};
+        var ref_shapePoint = { ref: null };
+        var ref_worldPoint = { ref: null };
         var closestPointDist = CollisionDetector.closestToEntityWorld(this, 2, ref_shapePoint, ref_worldPoint, gameState.world);
         if (closestPointDist < Number.POSITIVE_INFINITY) {
             var delta = this.getCenter().sub(ref_worldPoint.ref);
@@ -5659,11 +5675,11 @@ var Cell = (function () {
         var v10 = new Vector(1, 0);
         var v11 = new Vector(1, 1);
         switch (this.type) {
-            case CELL_SOLID: return new Polygon(vxy, v00, v10, v11, v01);
-            case CELL_FLOOR_DIAG_LEFT: return new Polygon(vxy, v00, v10, v01);
-            case CELL_FLOOR_DIAG_RIGHT: return new Polygon(vxy, v00, v10, v11);
-            case CELL_CEIL_DIAG_LEFT: return new Polygon(vxy, v00, v11, v01);
-            case CELL_CEIL_DIAG_RIGHT: return new Polygon(vxy, v01, v10, v11);
+            case CELL_SOLID: return new Polygon([vxy, v00, v10, v11, v01]);
+            case CELL_FLOOR_DIAG_LEFT: return new Polygon([vxy, v00, v10, v01]);
+            case CELL_FLOOR_DIAG_RIGHT: return new Polygon([vxy, v00, v10, v11]);
+            case CELL_CEIL_DIAG_LEFT: return new Polygon([vxy, v00, v11, v01]);
+            case CELL_CEIL_DIAG_RIGHT: return new Polygon([vxy, v01, v10, v11]);
         }
         return null;
     };

@@ -1,5 +1,3 @@
-#require <class.js>
-#require <enemy.js>
 
 RotatingEnemy.subclasses(Enemy);
 
@@ -8,12 +6,12 @@ RotatingEnemy.subclasses(Enemy);
   * These enemies are all circular.
   */
 function RotatingEnemy(type, center, radius, heading, elasticity) {
-	Enemy.prototype.constructor.call(this, type, elasticity);
+    Enemy.prototype.constructor.call(this, type, elasticity);
 
-	this.hitCircle = new Circle(center, radius);
-	this.heading = heading;
+    this.hitCircle = new Circle(center, radius);
+    this.heading = heading;
 }
 
-RotatingEnemy.prototype.getShape = function() {
-	return this.hitCircle;
+RotatingEnemy.prototype.getShape = function () {
+    return this.hitCircle;
 };

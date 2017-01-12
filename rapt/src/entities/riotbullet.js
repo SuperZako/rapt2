@@ -1,5 +1,4 @@
-#require <class.js>
-#require <freefallenemy.js>
+
 
 var RIOT_BULLET_RADIUS = 0.1;
 var RIOT_BULLET_SPEED = 7;

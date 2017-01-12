@@ -1,53 +1,4 @@
 (function () {
-    var RIOT_BULLET_RADIUS = 0.1;
-    var RIOT_BULLET_SPEED = 7;
-    RiotBullet.subclasses(FreefallEnemy);;
-    function RiotBullet(center, direction) {
-        FreefallEnemy.prototype.constructor.call(this, ENEMY_RIOT_BULLET, center, RIOT_BULLET_RADIUS, 0);;
-        this.velocity = new Vector(RIOT_BULLET_SPEED * Math.cos(direction), RIOT_BULLET_SPEED * Math.sin(direction));;
-
-    };
-    RiotBullet.prototype.reactToPlayer = function (player) {
-        var _0, _1;
-        if (!this.isDead()) {
-            var deltaVelocity = (_0 = this.velocity, _1 = new Vector(0, 0), _1.x = _0.x * 0.75, _1.y = _0.y * 0.75, _1);
-            player.addToVelocity(deltaVelocity);;
-        };
-        this.setDead(true);;
-
-    };;
-    RiotBullet.prototype.onDeath = function () {
-        var _0, _1, _2, _3, _4;
-        var position = this.getCenter();
-        for (var i = 0; i < 5; ++i) {
-            var direction = Vector.fromAngle((_0 = 2 * Math.PI, 0 + (_0 - 0) * Math.random()));
-            direction = (_0 = this.velocity, _1 = (_3 = (0.1 + (1 - 0.1) * Math.random()), _4 = new Vector(0, 0), _4.x = direction.x * _3, _4.y = direction.y * _3, _4), _2 = new Vector(0, 0), _2.x = _0.x + _1.x, _2.y = _0.y + _1.y, _2);;
-            Particle().position(position).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0005, 0.005).expand(1.0, 1.2).color(0.9, 0.9, 0, 1).mixColor(1, 1, 0, 1).circle();;
-        };
-        Enemy.prototype.onDeath.call(this);;
-
-    };;
-    RiotBullet.prototype.draw = function (c) {
-        var pos = this.getCenter();
-        c.strokeStyle = 'black';;
-        c.fillStyle = 'yellow';;
-        c.beginPath();;
-        c.arc(pos.x, pos.y, RIOT_BULLET_RADIUS, 0, 2 * Math.PI, false);;
-        c.fill();;
-        c.stroke();;
-
-    };;
-    RotatingEnemy.subclasses(Enemy);;
-    function RotatingEnemy(type, center, radius, heading, elasticity) {
-        Enemy.prototype.constructor.call(this, type, elasticity);;
-        this.hitCircle = new Circle(center, radius);;
-        this.heading = heading;;
-
-    };
-    RotatingEnemy.prototype.getShape = function () {
-        return this.hitCircle;;
-
-    };;
     var CORROSION_CLOUD_RADIUS = 0.5;
     var CORROSION_CLOUD_SPEED = 0.7;
     var CORROSION_CLOUD_ACCEL = 10;
@@ -1579,32 +1530,7 @@
         this.bodySprite.draw(c);;
 
     };
-    function setCookie(name, value, days) {
-        if (days) {
-            var date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));;
-            var expires = '; expires=' + date.toGMTString();
-        } else {
-            var expires = '';
-        };
-        document.cookie = name + '=' + escape(value) + expires + '; path=/';;
 
-    };
-    function getCookie(name) {
-        var nameEQ = name + '=';
-        var parts = document.cookie.split(';');
-        for (var i = 0; i < parts.length; i++) {
-            var c = parts[i];
-            while (c.charAt(0) == ' ') {
-                c = c.substring(1, c.length);;
-            };
-            if (c.indexOf(nameEQ) == 0) {
-                return unescape(c.substring(nameEQ.length, c.length));;
-            };
-        };
-        return null;;
-
-    };
     var keyCodeArray = [, , , 'CANCEL', , , 'HELP', , 'BACK SPACE', 'TAB', , , 'CLEAR', 'RETURN', 'ENTER', , 'SHIFT', 'CTRL', 'ALT', 'PAUSE', 'CAPS LOCK', , , , , , , 'ESCAPE', , , , , 'SPACE', 'PAGE UP', 'PAGE DOWN', 'END', 'HOME', '&larr;', '&uarr;', '&rarr;', '&darr;', , , , 'PRINT SCREEN', 'INSERT', 'DELETE', , '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', , ';', , '=', , , , 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'META', , 'CONTEXT MENU', , , 'NUMPAD0', 'NUMPAD1', 'NUMPAD2', 'NUMPAD3', 'NUMPAD4', 'NUMPAD5', 'NUMPAD6', 'NUMPAD7', 'NUMPAD8', 'NUMPAD9', '*', '+', 'SEPARATOR', '-', 'DECIMAL', 'DIVIDE', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 'F13', 'F14', 'F15', 'F16', 'F17', 'F18', 'F19', 'F20', 'F21', 'F22', 'F23', 'F24', , , , , , , , , 'NUM LOCK', 'SCROLL LOCK', , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ';', '=', ',', '-', '.', '/', '"', , , , , , , , , , , , , , , , , , , , , , , , , , , '[', '\\', ']', "'", , 'META'];
     function setLocalStorage(name, value) {
         if (typeof localStorage != 'undefined') {

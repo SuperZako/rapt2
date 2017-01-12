@@ -1,5 +1,3 @@
-#require <class.js>
-#require <rotatingenemy.js>
 
 var ROCKET_SPRITE_RED = 0;
 var ROCKET_SPRITE_BLUE = 1;

@@ -1,5 +1,3 @@
-#require <class.js>
-#require <rotatingenemy.js>
 
 var DOOM_MAGNET_RADIUS = .3;
 var DOOM_MAGNET_ELASTICITY = 0.5;

@@ -1,5 +1,3 @@
-#require <class.js>
-#require <rotatingenemy.js>
 
 var HUNTER_BODY = 0;
 var HUNTER_CLAW1 = 1;

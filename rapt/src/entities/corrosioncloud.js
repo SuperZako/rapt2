@@ -1,5 +1,4 @@
-#require <class.js>
-#require <rotatingenemy.js>
+
 
 var CORROSION_CLOUD_RADIUS = .5;
 var CORROSION_CLOUD_SPEED = .7;

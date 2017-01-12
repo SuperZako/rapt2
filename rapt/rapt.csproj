@@ -113,7 +113,7 @@
     <TypeScriptCompile Include="src\collisions\circle.ts" />
     <Content Include="src\collisions\collisiondetection.js" />
     <TypeScriptCompile Include="src\collisions\contact.ts" />
-    <Content Include="src\collisions\edgequad.js" />
+    <TypeScriptCompile Include="src\collisions\edgequad.ts" />
     <TypeScriptCompile Include="src\collisions\polygon.ts" />
     <TypeScriptCompile Include="src\collisions\segment.ts" />
     <TypeScriptCompile Include="src\collisions\shape.ts" />

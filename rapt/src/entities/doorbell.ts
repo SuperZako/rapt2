@@ -63,7 +63,7 @@ class Doorbell extends Enemy {
         for (var i = 0; i < 50; ++i) {
             var rotationAngle = randInRange(0, 2 * Math.PI);
             var direction = Vector.fromAngle(rotationAngle).mul(randInRange(3, 5));
-            Particle().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(1, 1, 1, 1);
+            Particle.get().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(1, 1, 1, 1);
         }
 
         this.rotationPercent = 0;

@@ -294,7 +294,7 @@ class GameState {
         this.spawnPointParticleTimer -= seconds;
         if (this.spawnPointParticleTimer <= 0) {
             var position = this.world.spawnPoint.sub(new Vector(0, 0.25));
-            Particle().position(position).velocity(new Vector(randInRange(-0.3, 0.3), 0.3)).radius(0.03, 0.05).bounces(0).decay(0.1, 0.2).color(1, 1, 1, 1).circle().gravity(-5);
+            Particle.get().position(position).velocity(new Vector(randInRange(-0.3, 0.3), 0.3)).radius(0.03, 0.05).bounces(0).decay(0.1, 0.2).color(1, 1, 1, 1).circle().gravity(-5);
             this.spawnPointParticleTimer += SPAWN_POINT_PARTICLE_FREQ;
         }
     }

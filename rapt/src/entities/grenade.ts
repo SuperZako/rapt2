@@ -55,7 +55,7 @@ class Grenade extends FreefallEnemy {
         for (var i = 0; i < 100; i++) {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(1, 10));
 
-            Particle().position(position).velocity(direction).radius(0.1, 0.2).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0001, 0.001).expand(1, 1.2).color(1, 0.25, 0, 1).mixColor(1, 0.5, 0, 1).triangle();
+            Particle.get().position(position).velocity(direction).radius(0.1, 0.2).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0001, 0.001).expand(1, 1.2).color(1, 0.25, 0, 1).mixColor(1, 0.5, 0, 1).triangle();
         }
 
         // smoke
@@ -63,7 +63,7 @@ class Grenade extends FreefallEnemy {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
             direction = new Vector(0, 1).add(direction.mul(randInRange(0.25, 1)));
 
-            Particle().position(position).velocity(direction).radius(0.1, 0.2).bounces(1, 3).elasticity(0.05, 0.9).decay(0.0005, 0.1).expand(1.1, 1.3).color(0, 0, 0, 1).mixColor(0.5, 0.5, 0.5, 1).circle().gravity(-0.4, 0);
+            Particle.get().position(position).velocity(direction).radius(0.1, 0.2).bounces(1, 3).elasticity(0.05, 0.9).decay(0.0005, 0.1).expand(1.1, 1.3).color(0, 0, 0, 1).mixColor(0.5, 0.5, 0.5, 1).circle().gravity(-0.4, 0);
         }
     }
 }

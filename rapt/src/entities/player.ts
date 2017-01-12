@@ -484,7 +484,7 @@ class Player extends Entity {
             var direction = Vector.fromAngle(lerp(0, 2 * Math.PI, Math.random()));
             direction = this.velocity.add(direction.mul(lerp(1, 10, Math.random())));
 
-            Particle().triangle().position(this.polygon.center).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.02).expand(1, 1.2).color(r / 2, g / 2, b / 2, 1).mixColor(r, g, b, 1);
+            Particle.get().triangle().position(this.polygon.center).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.02).expand(1, 1.2).color(r / 2, g / 2, b / 2, 1).mixColor(r, g, b, 1);
         }
         gameState.incrementStat(STAT_PLAYER_DEATHS);
     }
@@ -511,7 +511,7 @@ class Player extends Entity {
                     lerp(0, directionMultiplier, Math.random()),
                     lerp(up, 2 * up, Math.random()));
 
-                Particle().color(0.3, 0.3, 0.3, 1).mixColor(0.5, 0.3, 0.3, 1).position(position).circle().radius(0.02, 0.04).decay(0.01, 0.2).gravity(15).bounces(2, 4).velocity(velocity).elasticity(0.05, 0.1);
+                Particle.get().color(0.3, 0.3, 0.3, 1).mixColor(0.5, 0.3, 0.3, 1).position(position).circle().radius(0.02, 0.04).decay(0.01, 0.2).gravity(15).bounces(2, 4).velocity(velocity).elasticity(0.05, 0.1);
             }
         } else {
             this.slideParticleTimer = 0;
@@ -523,7 +523,7 @@ class Player extends Entity {
             while (this.superJumpParticleTimer < 0) {
                 this.superJumpParticleTimer += SUPER_PARTICLE_TIMER_PERIOD;
                 var position = this.polygon.center.add(new Vector(randInRange(-0.2, 0.2), randInRange(-0.4, 0.4)));
-                Particle().color(1, 1, 0, 1).mixColor(1, 1, 0, 0.75).position(position).circle().radius(0.03, 0.05).expand(1.1, 1.2).decay(0.1, 0.2).gravity(5).bounces(2, 3);
+                Particle.get().color(1, 1, 0, 1).mixColor(1, 1, 0, 0.75).position(position).circle().radius(0.03, 0.05).expand(1.1, 1.2).decay(0.1, 0.2).gravity(5).bounces(2, 3);
             }
         } else {
             this.superJumpParticleTimer = 0;

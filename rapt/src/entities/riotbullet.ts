@@ -28,7 +28,7 @@ class RiotBullet extends FreefallEnemy {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
             direction = this.velocity.add(direction.mul(randInRange(0.1, 1)));
 
-            Particle().position(position).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0005, 0.005).expand(1.0, 1.2).color(0.9, 0.9, 0, 1).mixColor(1, 1, 0, 1).circle();
+            Particle.get().position(position).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0005, 0.005).expand(1.0, 1.2).color(0.9, 0.9, 0, 1).mixColor(1, 1, 0, 1).circle();
         }
         Enemy.prototype.onDeath.call(this);
     }

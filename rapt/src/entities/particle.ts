@@ -158,7 +158,7 @@ class ParticleInstance {
 }
 
 // wrap in anonymous function for private variables
-var Particle = (function () {
+namespace Particle {
     // particles is an array of ParticleInstances where the first count are in use
     var particles = new Array(3000);
     var maxCount = particles.length;
@@ -168,17 +168,18 @@ var Particle = (function () {
         particles[i] = new ParticleInstance();
     }
 
-    function Particle() {
+    //function Particle() {
+    export function get() {
         var particle = (count < maxCount) ? particles[count++] : particles[maxCount - 1];
         particle.init();
         return particle;
     }
 
-    Particle.reset = function () {
+    export function reset() {
         count = 0;
-    };
+    }
 
-    Particle.tick = function (seconds) {
+    export function tick(seconds) {
         for (var i = 0; i < count; i++) {
             var isAlive = particles[i].tick(seconds);
             if (!isAlive) {
@@ -194,9 +195,9 @@ var Particle = (function () {
                 i--;
             }
         }
-    };
+    }
 
-    Particle.draw = function (c) {
+    export function draw(c) {
         for (var i = 0; i < count; i++) {
             var particle = particles[i];
             var pos = particle.m_position;
@@ -204,7 +205,5 @@ var Particle = (function () {
                 particle.draw(c);
             }
         }
-    };
-
-    return Particle;
-})();
+    }
+}

@@ -87,7 +87,7 @@ class Stalacbat extends FreefallEnemy {
         var position = this.getCenter();
         for (var i = 0; i < 15; ++i) {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(5, 10));
-            Particle().position(position).velocity(direction).radius(0.2).bounces(3).decay(0.01).elasticity(0.5).color(isRed, 0, isBlue, 1).triangle();
+            Particle.get().position(position).velocity(direction).radius(0.2).bounces(3).decay(0.01).elasticity(0.5).color(isRed, 0, isBlue, 1).triangle();
         }
     }
 

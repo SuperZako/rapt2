@@ -6,10 +6,11 @@ var LASER_BOUNCES = 0;
 
 //Laser.subclasses(FreefallEnemy);
 class Laser extends FreefallEnemy {
+    bouncesLeft = LASER_BOUNCES;
     constructor(center, direction) {
         // FreefallEnemy.prototype.constructor.call(this, ENEMY_LASER, center, LASER_RADIUS, 1);
         super(ENEMY_LASER, center, LASER_RADIUS, 1);
-        this.bouncesLeft = LASER_BOUNCES;
+        // this.bouncesLeft = LASER_BOUNCES;
         this.velocity = new Vector(LASER_SPEED * Math.cos(direction), LASER_SPEED * Math.sin(direction));
     }
 
@@ -27,7 +28,7 @@ class Laser extends FreefallEnemy {
                 var direction = Vector.fromAngle(angle);
                 direction = direction.mul(randInRange(0.5, 5));
 
-                Particle().position(position).velocity(direction).angle(angle).radius(0.1).bounces(1).elasticity(1).decay(0.01).gravity(0).color(1, 1, 1, 1).line();
+                Particle.get().position(position).velocity(direction).angle(angle).radius(0.1).bounces(1).elasticity(1).decay(0.01).gravity(0).color(1, 1, 1, 1).line();
             }
         } else {
             --this.bouncesLeft;

@@ -124,7 +124,7 @@ class Headache extends HoveringEnemy {
 
         // body
         var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(0, 0.05));
-        var body = Particle().position(position).velocity(direction).radius(HEADACHE_RADIUS).bounces(3).elasticity(0.5).decay(0.01).circle().gravity(5);
+        var body = Particle.get().position(position).velocity(direction).radius(HEADACHE_RADIUS).bounces(3).elasticity(0.5).decay(0.01).circle().gravity(5);
         if (this.target == gameState.playerA) {
             body.color(1, 0, 0, 1);
         } else {
@@ -135,7 +135,7 @@ class Headache extends HoveringEnemy {
         for (var i = 0; i < 50; ++i) {
             var rotationAngle = randInRange(0, 2 * Math.PI);
             var direction = Vector.fromAngle(rotationAngle).mul(randInRange(3, 5));
-            Particle().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(0, 0, 0, 1);
+            Particle.get().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(0, 0, 0, 1);
         }
     }
 

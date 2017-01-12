@@ -653,7 +653,7 @@ var CollisionDetector;
         // deltaProportion1 is a throwaway
         // we can only use segmentProportion0 because segmentProportion1 represents the intersection
         // when the circle travels so that the point moves OUT of it, so we don't want to stop it from doing that.
-        var ref_deltaProportion0 = {}, ref_deltaProportion1 = {};
+        var ref_deltaProportion0 = { ref: null }, ref_deltaProportion1 = { ref: null };
         // BUGFIX: shock hawks were disappearing on Traps when deltaPosition was very small, which caused
         // us to try to solve a quadratic with a second order coefficient of zero and put NaNs everywhere
         var delta = deltaPosition.length();
@@ -1400,11 +1400,11 @@ var Bomb = (function (_super) {
         // fire
         for (var i = 0; i < 50; ++i) {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(0.5, 7));
-            Particle().position(position).velocity(direction).radius(0.02, 0.15).bounces(0, 4).elasticity(0.05, 0.9).decay(0.00001, 0.0001).expand(1.0, 1.2).color(1, 0.5, 0, 1).mixColor(1, 1, 0, 1).triangle();
+            Particle.get().position(position).velocity(direction).radius(0.02, 0.15).bounces(0, 4).elasticity(0.05, 0.9).decay(0.00001, 0.0001).expand(1.0, 1.2).color(1, 0.5, 0, 1).mixColor(1, 1, 0, 1).triangle();
         }
         // white center
         // collide should be false on this
-        Particle().position(position).radius(0.1).bounces(0).gravity(false).decay(0.000001).expand(10).color(1, 1, 1, 5).circle();
+        Particle.get().position(position).radius(0.1).bounces(0).gravity(false).decay(0.000001).expand(10).color(1, 1, 1, 5).circle();
     };
     return Bomb;
 }(FreefallEnemy));
@@ -1633,11 +1633,11 @@ var Rocket = (function (_super) {
             // add a flame
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
             direction = direction.mul(randInRange(0, 2)).sub(this.velocity.mul(3));
-            Particle().position(position).velocity(direction).radius(0.1, 0.15).bounces(1).decay(0.000001, 0.00001).expand(1.0, 1.2).color(1, 0.5, 0, 1).mixColor(1, 1, 0, 1).triangle();
+            Particle.get().position(position).velocity(direction).radius(0.1, 0.15).bounces(1).decay(0.000001, 0.00001).expand(1.0, 1.2).color(1, 0.5, 0, 1).mixColor(1, 1, 0, 1).triangle();
             // add a puff of smoke
             direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
             direction = direction.mul(randInRange(0.25, 1)).sub(this.velocity);
-            Particle().position(position).velocity(direction).radius(0.05, 0.1).bounces(1).elasticity(0.05, 0.9).decay(0.0005, 0.001).expand(1.2, 1.4).color(0, 0, 0, 0.25).mixColor(0.25, 0.25, 0.25, 0.75).circle().gravity(-0.4, 0);
+            Particle.get().position(position).velocity(direction).radius(0.05, 0.1).bounces(1).elasticity(0.05, 0.9).decay(0.0005, 0.001).expand(1.2, 1.4).color(0, 0, 0, 0.25).mixColor(0.25, 0.25, 0.25, 0.75).circle().gravity(-0.4, 0);
             this.timeUntilNextParticle += PARTICLE_FREQUENCY;
         }
     };
@@ -1654,7 +1654,7 @@ var Rocket = (function (_super) {
         for (var i = 0; i < 50; ++i) {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
             direction = direction.mul(randInRange(0.5, 17));
-            Particle().position(position).velocity(direction).radius(0.02, 0.15).bounces(0, 4).elasticity(0.05, 0.9).decay(0.00001, 0.0001).expand(1.0, 1.2).color(1, 0.5, 0, 1).mixColor(1, 1, 0, 1).triangle();
+            Particle.get().position(position).velocity(direction).radius(0.02, 0.15).bounces(0, 4).elasticity(0.05, 0.9).decay(0.00001, 0.0001).expand(1.0, 1.2).color(1, 0.5, 0, 1).mixColor(1, 1, 0, 1).triangle();
         }
     };
     Rocket.prototype.draw = function (c) {
@@ -1883,7 +1883,7 @@ var CorrosionCloud = (function (_super) {
         var isRed = (this.target === gameState.playerA) ? 0.4 : 0;
         var isBlue = (this.target === gameState.playerB) ? 0.3 : 0;
         this.smoothedVelocity = this.smoothedVelocity.mul(0.95).add(this.velocity.mul(0.05));
-        Particle().position(center).velocity(this.smoothedVelocity.sub(new Vector(0.1, 0.1)), this.smoothedVelocity.add(new Vector(0.1, 0.1))).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).expand(1, 1.2).color(0.2 + isRed, 0.2, 0.2 + isBlue, 1).mixColor(0.1 + isRed, 0.1, 0.1 + isBlue, 1).circle().gravity(-0.4, 0);
+        Particle.get().position(center).velocity(this.smoothedVelocity.sub(new Vector(0.1, 0.1)), this.smoothedVelocity.add(new Vector(0.1, 0.1))).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).expand(1, 1.2).color(0.2 + isRed, 0.2, 0.2 + isBlue, 1).mixColor(0.1 + isRed, 0.1, 0.1 + isBlue, 1).circle().gravity(-0.4, 0);
     };
     CorrosionCloud.prototype.getTarget = function () {
         return this.target === gameState.playerB;
@@ -2056,7 +2056,7 @@ var Doorbell = (function (_super) {
         for (var i = 0; i < 50; ++i) {
             var rotationAngle = randInRange(0, 2 * Math.PI);
             var direction = Vector.fromAngle(rotationAngle).mul(randInRange(3, 5));
-            Particle().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(1, 1, 1, 1);
+            Particle.get().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(1, 1, 1, 1);
         }
         this.rotationPercent = 0;
     };
@@ -2111,7 +2111,7 @@ var GoldenCog = (function (_super) {
         for (var i = 0; i < 100; ++i) {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
             direction = this.velocity.add(direction.mul(randInRange(1, 5)));
-            Particle().position(position).velocity(direction).radius(0.01, 1.5).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).color(0.9, 0.87, 0, 1).mixColor(1, 0.96, 0, 1).triangle();
+            Particle.get().position(position).velocity(direction).radius(0.01, 1.5).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).color(0.9, 0.87, 0, 1).mixColor(1, 0.96, 0, 1).triangle();
         }
     };
     GoldenCog.prototype.afterTick = function (seconds) {
@@ -2169,13 +2169,13 @@ var Grenade = (function (_super) {
         // fire
         for (var i = 0; i < 100; i++) {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(1, 10));
-            Particle().position(position).velocity(direction).radius(0.1, 0.2).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0001, 0.001).expand(1, 1.2).color(1, 0.25, 0, 1).mixColor(1, 0.5, 0, 1).triangle();
+            Particle.get().position(position).velocity(direction).radius(0.1, 0.2).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0001, 0.001).expand(1, 1.2).color(1, 0.25, 0, 1).mixColor(1, 0.5, 0, 1).triangle();
         }
         // smoke
         for (var i = 0; i < 50; i++) {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
             direction = new Vector(0, 1).add(direction.mul(randInRange(0.25, 1)));
-            Particle().position(position).velocity(direction).radius(0.1, 0.2).bounces(1, 3).elasticity(0.05, 0.9).decay(0.0005, 0.1).expand(1.1, 1.3).color(0, 0, 0, 1).mixColor(0.5, 0.5, 0.5, 1).circle().gravity(-0.4, 0);
+            Particle.get().position(position).velocity(direction).radius(0.1, 0.2).bounces(1, 3).elasticity(0.05, 0.9).decay(0.0005, 0.1).expand(1.1, 1.3).color(0, 0, 0, 1).mixColor(0.5, 0.5, 0.5, 1).circle().gravity(-0.4, 0);
         }
     };
     return Grenade;
@@ -2409,7 +2409,7 @@ var Headache = (function (_super) {
         var position = this.getCenter();
         // body
         var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(0, 0.05));
-        var body = Particle().position(position).velocity(direction).radius(HEADACHE_RADIUS).bounces(3).elasticity(0.5).decay(0.01).circle().gravity(5);
+        var body = Particle.get().position(position).velocity(direction).radius(HEADACHE_RADIUS).bounces(3).elasticity(0.5).decay(0.01).circle().gravity(5);
         if (this.target == gameState.playerA) {
             body.color(1, 0, 0, 1);
         }
@@ -2420,7 +2420,7 @@ var Headache = (function (_super) {
         for (var i = 0; i < 50; ++i) {
             var rotationAngle = randInRange(0, 2 * Math.PI);
             var direction = Vector.fromAngle(rotationAngle).mul(randInRange(3, 5));
-            Particle().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(0, 0, 0, 1);
+            Particle.get().position(this.getCenter()).velocity(direction).angle(rotationAngle).radius(0.05).bounces(3).elasticity(0.5).decay(0.01).line().color(0, 0, 0, 1);
         }
     };
     Headache.prototype.reactToPlayer = function (player) {
@@ -2821,6 +2821,7 @@ var Laser = (function (_super) {
         // FreefallEnemy.prototype.constructor.call(this, ENEMY_LASER, center, LASER_RADIUS, 1);
         _super.call(this, ENEMY_LASER, center, LASER_RADIUS, 1) || this;
         _this.bouncesLeft = LASER_BOUNCES;
+        // this.bouncesLeft = LASER_BOUNCES;
         _this.velocity = new Vector(LASER_SPEED * Math.cos(direction), LASER_SPEED * Math.sin(direction));
         return _this;
     }
@@ -2835,7 +2836,7 @@ var Laser = (function (_super) {
                 var angle = randInRange(0, 2 * Math.PI);
                 var direction = Vector.fromAngle(angle);
                 direction = direction.mul(randInRange(0.5, 5));
-                Particle().position(position).velocity(direction).angle(angle).radius(0.1).bounces(1).elasticity(1).decay(0.01).gravity(0).color(1, 1, 1, 1).line();
+                Particle.get().position(position).velocity(direction).angle(angle).radius(0.1).bounces(1).elasticity(1).decay(0.01).gravity(0).color(1, 1, 1, 1).line();
             }
         }
         else {
@@ -3146,7 +3147,8 @@ var ParticleInstance = (function () {
     return ParticleInstance;
 }());
 // wrap in anonymous function for private variables
-var Particle = (function () {
+var Particle;
+(function (Particle) {
     // particles is an array of ParticleInstances where the first count are in use
     var particles = new Array(3000);
     var maxCount = particles.length;
@@ -3154,15 +3156,18 @@ var Particle = (function () {
     for (var i = 0; i < particles.length; i++) {
         particles[i] = new ParticleInstance();
     }
-    function Particle() {
+    //function Particle() {
+    function get() {
         var particle = (count < maxCount) ? particles[count++] : particles[maxCount - 1];
         particle.init();
         return particle;
     }
-    Particle.reset = function () {
+    Particle.get = get;
+    function reset() {
         count = 0;
-    };
-    Particle.tick = function (seconds) {
+    }
+    Particle.reset = reset;
+    function tick(seconds) {
         for (var i = 0; i < count; i++) {
             var isAlive = particles[i].tick(seconds);
             if (!isAlive) {
@@ -3176,8 +3181,9 @@ var Particle = (function () {
                 i--;
             }
         }
-    };
-    Particle.draw = function (c) {
+    }
+    Particle.tick = tick;
+    function draw(c) {
         for (var i = 0; i < count; i++) {
             var particle = particles[i];
             var pos = particle.m_position;
@@ -3185,9 +3191,9 @@ var Particle = (function () {
                 particle.draw(c);
             }
         }
-    };
-    return Particle;
-})();
+    }
+    Particle.draw = draw;
+})(Particle || (Particle = {}));
 ///<reference path="../util/vector.ts" /> 
 // class Keyframe
 var Keyframe = (function () {
@@ -3621,7 +3627,7 @@ var Player = (function (_super) {
         for (var i = 0; i < 500; i++) {
             var direction = Vector.fromAngle(lerp(0, 2 * Math.PI, Math.random()));
             direction = this.velocity.add(direction.mul(lerp(1, 10, Math.random())));
-            Particle().triangle().position(this.polygon.center).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.02).expand(1, 1.2).color(r / 2, g / 2, b / 2, 1).mixColor(r, g, b, 1);
+            Particle.get().triangle().position(this.polygon.center).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.02).expand(1, 1.2).color(r / 2, g / 2, b / 2, 1).mixColor(r, g, b, 1);
         }
         gameState.incrementStat(STAT_PLAYER_DEATHS);
     };
@@ -3639,7 +3645,7 @@ var Player = (function (_super) {
                 // distribute the particles along the side of the bounding box closest to the world (add 0.25 because the hands reach over the bounding box)
                 var position = new Vector((this.state == PLAYER_STATE_RIGHT_WALL) ? bounds.getRight() : bounds.getLeft(), lerp(bounds.getBottom(), bounds.getTop() + 0.25, Math.random()));
                 var velocity = new Vector(lerp(0, directionMultiplier, Math.random()), lerp(up, 2 * up, Math.random()));
-                Particle().color(0.3, 0.3, 0.3, 1).mixColor(0.5, 0.3, 0.3, 1).position(position).circle().radius(0.02, 0.04).decay(0.01, 0.2).gravity(15).bounces(2, 4).velocity(velocity).elasticity(0.05, 0.1);
+                Particle.get().color(0.3, 0.3, 0.3, 1).mixColor(0.5, 0.3, 0.3, 1).position(position).circle().radius(0.02, 0.04).decay(0.01, 0.2).gravity(15).bounces(2, 4).velocity(velocity).elasticity(0.05, 0.1);
             }
         }
         else {
@@ -3651,7 +3657,7 @@ var Player = (function (_super) {
             while (this.superJumpParticleTimer < 0) {
                 this.superJumpParticleTimer += SUPER_PARTICLE_TIMER_PERIOD;
                 var position = this.polygon.center.add(new Vector(randInRange(-0.2, 0.2), randInRange(-0.4, 0.4)));
-                Particle().color(1, 1, 0, 1).mixColor(1, 1, 0, 0.75).position(position).circle().radius(0.03, 0.05).expand(1.1, 1.2).decay(0.1, 0.2).gravity(5).bounces(2, 3);
+                Particle.get().color(1, 1, 0, 1).mixColor(1, 1, 0, 0.75).position(position).circle().radius(0.03, 0.05).expand(1.1, 1.2).decay(0.1, 0.2).gravity(5).bounces(2, 3);
             }
         }
         else {
@@ -3757,7 +3763,7 @@ var RiotBullet = (function (_super) {
         for (var i = 0; i < 5; ++i) {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
             direction = this.velocity.add(direction.mul(randInRange(0.1, 1)));
-            Particle().position(position).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0005, 0.005).expand(1.0, 1.2).color(0.9, 0.9, 0, 1).mixColor(1, 1, 0, 1).circle();
+            Particle.get().position(position).velocity(direction).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.0005, 0.005).expand(1.0, 1.2).color(0.9, 0.9, 0, 1).mixColor(1, 1, 0, 1).circle();
         }
         Enemy.prototype.onDeath.call(this);
     };
@@ -3990,7 +3996,7 @@ var Stalacbat = (function (_super) {
         var position = this.getCenter();
         for (var i = 0; i < 15; ++i) {
             var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI)).mul(randInRange(5, 10));
-            Particle().position(position).velocity(direction).radius(0.2).bounces(3).decay(0.01).elasticity(0.5).color(isRed, 0, isBlue, 1).triangle();
+            Particle.get().position(position).velocity(direction).radius(0.2).bounces(3).decay(0.01).elasticity(0.5).color(isRed, 0, isBlue, 1).triangle();
         }
     };
     Stalacbat.prototype.draw = function (c) {
@@ -4413,7 +4419,8 @@ var Screen = (function () {
     Screen.prototype.keyUp = function (key) { };
     return Screen;
 }());
-///<reference path="./screen.ts" /> 
+///<reference path="./screen.ts" />
+///<reference path="../entities/particle.ts" />
 var gameScale = 50;
 // text constants
 var GAME_WIN_TEXT = "You won!  Hit SPACE to play the next level or ESC for the level selection menu.";
@@ -6104,7 +6111,7 @@ var GameState = (function () {
         this.spawnPointParticleTimer -= seconds;
         if (this.spawnPointParticleTimer <= 0) {
             var position = this.world.spawnPoint.sub(new Vector(0, 0.25));
-            Particle().position(position).velocity(new Vector(randInRange(-0.3, 0.3), 0.3)).radius(0.03, 0.05).bounces(0).decay(0.1, 0.2).color(1, 1, 1, 1).circle().gravity(-5);
+            Particle.get().position(position).velocity(new Vector(randInRange(-0.3, 0.3), 0.3)).radius(0.03, 0.05).bounces(0).decay(0.1, 0.2).color(1, 1, 1, 1).circle().gravity(-5);
             this.spawnPointParticleTimer += SPAWN_POINT_PARTICLE_FREQ;
         }
     };

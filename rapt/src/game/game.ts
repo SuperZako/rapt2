@@ -1,4 +1,5 @@
-///<reference path="./screen.ts" /> 
+///<reference path="./screen.ts" />
+///<reference path="../entities/particle.ts" />
 
 var gameScale = 50;
 

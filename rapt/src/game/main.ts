@@ -58,250 +58,262 @@ class MenuItem {
 ////////////////////////////////////////////////////////////////////////////////
 // class Menu
 ////////////////////////////////////////////////////////////////////////////////
-
-function Menu() {
-    this.username = null;
-    this.items = [];
-    this.isLoading = false;
-    this.selectedIndex = -1;
-}
-
-Menu.prototype.load = function (username, onSuccess) {
-    // Don't reload the menu if we just loaded it
-    if (!this.isLoading && this.username == username) {
-        if (onSuccess) onSuccess();
-        return;
+class Menu {
+    username = null;
+    items = [];
+    isLoading = false;
+    selectedIndex = -1;
+    constructor() {
+        //this.username = null;
+        //this.items = [];
+        //this.isLoading = false;
+        //this.selectedIndex = -1;
     }
 
-    // Don't reload the menu if we're already loading it
-    if (this.isLoading && this.username == username) {
-        return;
-    }
-
-    this.username = username;
-    this.items = [];
-    this.isLoading = true;
-
-    var this_ = this;
-    ajaxGet('menu', getMenuUrl(username), function (json) {
-        var levels = json['levels'];
-        for (var i = 0; i < levels.length; i++) {
-            var level = levels[i];
-            this_.items.push(new MenuItem(level['html_title'], level['title'], level['difficulty']));
+    load(username, onSuccess) {
+        // Don't reload the menu if we just loaded it
+        if (!this.isLoading && this.username == username) {
+            if (onSuccess) onSuccess();
+            return;
         }
-        this_.isLoading = false;
-        this_.selectedIndex = 0;
-        if (onSuccess) onSuccess();
-    });
-};
 
-Menu.prototype.updateSelectedIndex = function () {
-    var selectedLevel = $('#level' + this.selectedIndex);
-    if (selectedLevel.length > 0) {
-        $('.level').blur();
-        $(selectedLevel).focus();
-
-        // no idea why 475 is the magic number that centers the selected level, but not going to worry about it
-        var scrollTop = $('#levelScreen').scrollTop() + $(selectedLevel).offset().top - 475;
-        $('#levelScreen').scrollTop(scrollTop);
-    }
-};
-
-Menu.prototype.show = function () {
-    if (this.isLoading) {
-        $('#canvas').hide();
-        $('#levelScreen').hide();
-        $('#loadingScreen').show();
-        $('#loadingScreen').html('Loading...');
-    } else {
-        $('#canvas').hide();
-        $('#levelScreen').show();
-        $('#loadingScreen').hide();
-
-        var html = '<h2>';
-        html += (this.username == 'rapt') ? 'Official Levels' : 'Levels made by ' + text2html(this.username);
-        html += '</h2><div id="levels">';
-        var prevDifficulty = null;
-        for (var i = 0; i < this.items.length; i++) {
-            var item = this.items[i];
-            var difficulty = ['Easy', 'Medium', 'Hard', 'Brutal', 'Demoralizing'][item.difficulty];
-            if (difficulty != prevDifficulty) {
-                prevDifficulty = difficulty;
-                html += '<div class="difficulty">' + difficulty + '</div>';
-            }
-            html += '<a class="level" id="level' + i + '" href="' + text2html(Hash.getLevelHash(this.username, item.levelname)) + '">';
-            var s = stats.getStatsForLevel(this.username, item.levelname);
-            html += '<img src="/images/' + (s['gotAllCogs'] ? 'checkplus' : s['complete'] ? 'check' : 'empty') + '.png">';
-            html += text2html(item.title) + '</a>';
+        // Don't reload the menu if we're already loading it
+        if (this.isLoading && this.username == username) {
+            return;
         }
-        html += '</div>';
-        $('#levelScreen').html(html);
+
+        this.username = username;
+        this.items = [];
+        this.isLoading = true;
 
         var this_ = this;
-        $('.level').hover(function () {
-            $(this).focus();
-        });
-        $('.level').focus(function () {
-            this_.selectedIndex = this.id.substr(5); // remove "level"
-        });
-
-        this.updateSelectedIndex();
-    }
-};
-
-Menu.prototype.indexOfLevel = function (username, levelname) {
-    if (username === this.username) {
-        for (var i = 0; i < this.items.length; i++) {
-            if (levelname === this.items[i].levelname) {
-                return i;
+        ajaxGet('menu', getMenuUrl(username), function (json) {
+            var levels = json['levels'];
+            for (var i = 0; i < levels.length; i++) {
+                var level = levels[i];
+                this_.items.push(new MenuItem(level['html_title'], level['title'], level['difficulty']));
             }
+            this_.isLoading = false;
+            this_.selectedIndex = 0;
+            if (onSuccess) onSuccess();
+        });
+    }
+
+    updateSelectedIndex() {
+        var selectedLevel = $('#level' + this.selectedIndex);
+        if (selectedLevel.length > 0) {
+            $('.level').blur();
+            $(selectedLevel).focus();
+
+            // no idea why 475 is the magic number that centers the selected level, but not going to worry about it
+            var scrollTop = $('#levelScreen').scrollTop() + $(selectedLevel).offset().top - 475;
+            $('#levelScreen').scrollTop(scrollTop);
         }
     }
-    return -1;
-};
 
-Menu.prototype.isLastLevel = function (username, levelname) {
-    if (username !== this.username) {
-        // This level is in some other menu, so return true (it is the last level)
-        // so pressing spacebar takes the user back to that other menu
-        return true;
-    } else {
-        return this.indexOfLevel(username, levelname) >= this.items.length - 1;
+    show() {
+        if (this.isLoading) {
+            $('#canvas').hide();
+            $('#levelScreen').hide();
+            $('#loadingScreen').show();
+            $('#loadingScreen').html('Loading...');
+        } else {
+            $('#canvas').hide();
+            $('#levelScreen').show();
+            $('#loadingScreen').hide();
+
+            var html = '<h2>';
+            html += (this.username == 'rapt') ? 'Official Levels' : 'Levels made by ' + text2html(this.username);
+            html += '</h2><div id="levels">';
+            var prevDifficulty = null;
+            for (var i = 0; i < this.items.length; i++) {
+                var item = this.items[i];
+                var difficulty = ['Easy', 'Medium', 'Hard', 'Brutal', 'Demoralizing'][item.difficulty];
+                if (difficulty != prevDifficulty) {
+                    prevDifficulty = difficulty;
+                    html += '<div class="difficulty">' + difficulty + '</div>';
+                }
+                html += '<a class="level" id="level' + i + '" href="' + text2html(Hash.getLevelHash(this.username, item.levelname)) + '">';
+                var s = stats.getStatsForLevel(this.username, item.levelname);
+                html += '<img src="/images/' + (s['gotAllCogs'] ? 'checkplus' : s['complete'] ? 'check' : 'empty') + '.png">';
+                html += text2html(item.title) + '</a>';
+            }
+            html += '</div>';
+            $('#levelScreen').html(html);
+
+            var this_ = this;
+            $('.level').hover(function () {
+                $(this).focus();
+            });
+            $('.level').focus(function () {
+                this_.selectedIndex = this.id.substr(5); // remove "level"
+            });
+
+            this.updateSelectedIndex();
+        }
     }
-};
 
-Menu.prototype.keyDown = function (e) {
-    if (e.which == UP_ARROW) {
-        if (this.selectedIndex > 0) this.selectedIndex--;
-        this.updateSelectedIndex();
-    } else if (e.which == DOWN_ARROW) {
-        if (this.selectedIndex < this.items.length - 1) this.selectedIndex++;
-        this.updateSelectedIndex();
+    indexOfLevel(username, levelname) {
+        if (username === this.username) {
+            for (var i = 0; i < this.items.length; i++) {
+                if (levelname === this.items[i].levelname) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
-};
 
-Menu.prototype.keyUp = function (e) {
-};
+    isLastLevel(username, levelname) {
+        if (username !== this.username) {
+            // This level is in some other menu, so return true (it is the last level)
+            // so pressing spacebar takes the user back to that other menu
+            return true;
+        } else {
+            return this.indexOfLevel(username, levelname) >= this.items.length - 1;
+        }
+    }
+
+    keyDown(e) {
+        if (e.which == UP_ARROW) {
+            if (this.selectedIndex > 0) this.selectedIndex--;
+            this.updateSelectedIndex();
+        } else if (e.which == DOWN_ARROW) {
+            if (this.selectedIndex < this.items.length - 1) this.selectedIndex++;
+            this.updateSelectedIndex();
+        }
+    }
+
+    keyUp(e) {
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // class Level
 ////////////////////////////////////////////////////////////////////////////////
+class Level {
+    username = null;
+    levelname = null;
+    isLoading = false;
+    width = 800;
+    height = 600;
+    ratio = 0;
+    constructor() {
+        this.username = null;
+        this.levelname = null;
+        this.isLoading = false;
+        this.width = 800;
+        this.height = 600;
+        this.ratio = 0;
 
-function Level() {
-    this.username = null;
-    this.levelname = null;
-    this.isLoading = false;
-    this.width = 800;
-    this.height = 600;
-    this.ratio = 0;
-
-    // set up the canvas
-    this.canvas = $('#canvas')[0];
-    this.context = this.canvas.getContext('2d');
-    this.lastTime = new Date();
-    this.game = null;
-    this.json = null;
-}
-
-Level.prototype.tick = function () {
-    var currentTime = new Date();
-    var seconds = (currentTime - this.lastTime) / 1000;
-    this.lastTime = currentTime;
-
-    // Retina support
-    var ratio = globalScaleFactor();
-    if (ratio != this.ratio) {
-        this.canvas.width = Math.round(this.width * ratio);
-        this.canvas.height = Math.round(this.height * ratio);
-        this.canvas.style.width = this.width + 'px';
-        this.canvas.style.height = this.height + 'px';
-        this.context.scale(ratio, ratio);
+        // set up the canvas
+        this.canvas = $('#canvas')[0];
+        this.context = this.canvas.getContext('2d');
+        this.lastTime = new Date();
+        this.game = null;
+        this.json = null;
     }
 
-    if (this.game != null) {
-        // if the computer goes to sleep, act like the game was paused
-        if (seconds > 0 && seconds < 1) this.game.tick(seconds);
+    tick() {
+        var currentTime = new Date();
+        var seconds = (currentTime - this.lastTime) / 1000;
+        this.lastTime = currentTime;
 
-        this.game.lastLevel = menu.isLastLevel(this.username, this.levelname);
-        this.game.draw(this.context);
+        // Retina support
+        var ratio = globalScaleFactor();
+        if (ratio != this.ratio) {
+            this.canvas.width = Math.round(this.width * ratio);
+            this.canvas.height = Math.round(this.height * ratio);
+            this.canvas.style.width = this.width + 'px';
+            this.canvas.style.height = this.height + 'px';
+            this.context.scale(ratio, ratio);
+        }
+
+        if (this.game != null) {
+            // if the computer goes to sleep, act like the game was paused
+            if (seconds > 0 && seconds < 1) this.game.tick(seconds);
+
+            this.game.lastLevel = menu.isLastLevel(this.username, this.levelname);
+            this.game.draw(this.context);
+        }
     }
-};
 
-Level.prototype.restart = function () {
-    Particle.reset();
-    this.game = new Game();
-    this.game.resize(this.width, this.height);
-    gameState.loadLevelFromJSON(this.json);
+    restart() {
+        Particle.reset();
+        this.game = new Game();
+        this.game.resize(this.width, this.height);
+        gameState.loadLevelFromJSON(this.json);
 
-    // add the check mark on the level menu when this level is won
-    var this_ = this;
-    this.game.onWin = function () {
-        var gotAllCogs = gameState.stats[STAT_COGS_COLLECTED] == gameState.stats[STAT_NUM_COGS];
-        var s = stats.getStatsForLevel(this_.username, this_.levelname);
-        stats.setStatsForLevel(this_.username, this_.levelname, true, s['gotAllCogs'] || gotAllCogs);
-    };
-};
-
-Level.prototype.load = function (username, levelname, onSuccess) {
-    this.username = username;
-    this.levelname = levelname;
-    this.isLoading = true;
-
-    var this_ = this;
-    ajaxGet('level', getLevelUrl(username, levelname), function (json) {
-        // reset the game
-        this_.json = json;//JSON.parse(json['data']);
-        this_.restart();
-
-        // reset the tick timer in case level loading took a while (we don't want the physics to
-        // try and catch up, because then it will rush through the first few seconds of the game)
-        this_.lastTime = new Date();
-
-        this_.isLoading = false;
-        if (onSuccess) onSuccess();
-    });
-};
-
-Level.prototype.show = function () {
-    if (this.isLoading) {
-        $('#canvas').hide();
-        $('#levelScreen').hide();
-        $('#loadingScreen').show();
-        $('#loadingScreen').html('Loading...');
-    } else {
-        $('#canvas').show();
-        $('#levelScreen').hide();
-        $('#loadingScreen').hide();
+        // add the check mark on the level menu when this level is won
+        var this_ = this;
+        this.game.onWin = function () {
+            var gotAllCogs = gameState.stats[STAT_COGS_COLLECTED] == gameState.stats[STAT_NUM_COGS];
+            var s = stats.getStatsForLevel(this_.username, this_.levelname);
+            stats.setStatsForLevel(this_.username, this_.levelname, true, s['gotAllCogs'] || gotAllCogs);
+        };
     }
-};
 
-Level.prototype.keyDown = function (e) {
-    if (this.game != null) {
-        this.game.keyDown(e);
+    load(username, levelname, onSuccess) {
+        this.username = username;
+        this.levelname = levelname;
+        this.isLoading = true;
 
-        if (e.which == SPACEBAR) {
-            if (gameState.gameStatus === GAME_LOST) {
-                // restart the current level
-                this.restart();
-            } else if (gameState.gameStatus === GAME_WON) {
-                if (menu.isLastLevel(this.username, this.levelname)) {
-                    // go back to the level menu
-                    hash.setHash(this.username, null);
-                } else {
-                    // go straight to the next level
-                    var index = menu.indexOfLevel(this.username, this.levelname);
-                    hash.setHash(this.username, menu.items[index + 1].levelname);
+        var this_ = this;
+        ajaxGet('level', getLevelUrl(username, levelname), function (json) {
+            // reset the game
+            this_.json = json;//JSON.parse(json['data']);
+            this_.restart();
+
+            // reset the tick timer in case level loading took a while (we don't want the physics to
+            // try and catch up, because then it will rush through the first few seconds of the game)
+            this_.lastTime = new Date();
+
+            this_.isLoading = false;
+            if (onSuccess) onSuccess();
+        });
+    }
+
+    show() {
+        if (this.isLoading) {
+            $('#canvas').hide();
+            $('#levelScreen').hide();
+            $('#loadingScreen').show();
+            $('#loadingScreen').html('Loading...');
+        } else {
+            $('#canvas').show();
+            $('#levelScreen').hide();
+            $('#loadingScreen').hide();
+        }
+    }
+
+    keyDown(e) {
+        if (this.game != null) {
+            this.game.keyDown(e);
+
+            if (e.which == SPACEBAR) {
+                if (gameState.gameStatus === GAME_LOST) {
+                    // restart the current level
+                    this.restart();
+                } else if (gameState.gameStatus === GAME_WON) {
+                    if (menu.isLastLevel(this.username, this.levelname)) {
+                        // go back to the level menu
+                        hash.setHash(this.username, null);
+                    } else {
+                        // go straight to the next level
+                        var index = menu.indexOfLevel(this.username, this.levelname);
+                        hash.setHash(this.username, menu.items[index + 1].levelname);
+                    }
                 }
             }
         }
     }
-};
 
-Level.prototype.keyUp = function (e) {
-    if (this.game != null) {
-        this.game.keyUp(e);
+    keyUp(e) {
+        if (this.game != null) {
+            this.game.keyUp(e);
+        }
     }
-};
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // class Hash

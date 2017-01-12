@@ -1,6 +1,9 @@
 
 // SpawningEnemy.subclasses(Enemy);
 class SpawningEnemy extends Enemy {
+    spawnFrequency;
+    timeUntilNextSpawn;
+    hitBox;
     constructor(type, center, width, height, elasticity, frequency, startingTime) {
         // Enemy.prototype.constructor.call(this, type, elasticity);
         super(type, elasticity);

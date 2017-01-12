@@ -7,14 +7,17 @@ var BOUNCY_LAUNCHER_RANGE = 8;
 
 // BouncyRocketLauncher.subclasses(SpawningEnemy);
 class BouncyRocketLauncher extends SpawningEnemy {
-    constructor(center, target) {
+    canFire = true;
+    angle = 0;
+    bodySprite = new Sprite();
+    constructor(center, public target) {
         //SpawningEnemy.prototype.constructor.call(this, ENEMY_BOUNCY_ROCKET_LAUNCHER, center, BOUNCY_LAUNCHER_WIDTH, BOUNCY_LAUNCHER_HEIGHT, 0, BOUNCY_LAUNCHER_SHOOT_FREQ, 0);
         super(ENEMY_BOUNCY_ROCKET_LAUNCHER, center, BOUNCY_LAUNCHER_WIDTH, BOUNCY_LAUNCHER_HEIGHT, 0, BOUNCY_LAUNCHER_SHOOT_FREQ, 0);
-        this.target = target;
-        this.canFire = true;
-        this.angle = 0;
+        // this.target = target;
+        // this.canFire = true;
+        // this.angle = 0;
 
-        this.bodySprite = new Sprite();
+        // this.bodySprite = new Sprite();
         if (this.target === gameState.playerA) {
             this.bodySprite.drawGeometry = function (c) {
                 // End of gun

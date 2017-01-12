@@ -8,10 +8,11 @@ var MAGNET_MAX_ROTATION = 2 * Math.PI;
 
 //DoomMagnet.subclasses(RotatingEnemy);
 class DoomMagnet extends RotatingEnemy {
+    bodySprite = new Sprite();
     constructor(center) {
         // RotatingEnemy.prototype.constructor.call(this, ENEMY_MAGNET, center, DOOM_MAGNET_RADIUS, 0, DOOM_MAGNET_ELASTICITY);
         super(ENEMY_MAGNET, center, DOOM_MAGNET_RADIUS, 0, DOOM_MAGNET_ELASTICITY);
-        this.bodySprite = new Sprite();
+        // this.bodySprite = new Sprite();
         this.bodySprite.drawGeometry = function (c) {
             var length = 0.15;
             var outerRadius = 0.15;

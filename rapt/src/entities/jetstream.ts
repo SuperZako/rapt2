@@ -10,13 +10,15 @@ var JET_STREAM_SPRITE_B = 1;
 
 // JetStream.subclasses(SpawningEnemy);
 class JetStream extends SpawningEnemy {
-    constructor(center, direction) {
+    reloadAnimation = 0;
+    sprites = [new Sprite(), new Sprite()];
+    constructor(center, public direction) {
         //SpawningEnemy.prototype.constructor.call(this, ENEMY_JET_STREAM, center, JET_STREAM_WIDTH, JET_STREAM_HEIGHT, 0, JET_STREAM_SHOOT_FREQ, 0);
         super(ENEMY_JET_STREAM, center, JET_STREAM_WIDTH, JET_STREAM_HEIGHT, 0, JET_STREAM_SHOOT_FREQ, 0);
-        this.direction = direction;
-        this.reloadAnimation = 0;
+        // this.direction = direction;
+        // this.reloadAnimation = 0;
 
-        this.sprites = [new Sprite(), new Sprite()];
+        // this.sprites = [new Sprite(), new Sprite()];
         this.sprites[JET_STREAM_SPRITE_A].drawGeometry = this.sprites[JET_STREAM_SPRITE_B].drawGeometry = function (c) {
             c.strokeStyle = 'black';
             c.beginPath();

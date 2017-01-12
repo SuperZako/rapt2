@@ -28,6 +28,18 @@
 // class BackgroundCache
 class BackgroundCache {
     canvas: HTMLCanvasElement;
+    c: CanvasRenderingContext2D;
+
+    xmin = 0;
+    ymin = 0;
+    xmax = 0;
+    ymax = 0;
+
+    width = 0;
+    height = 0;
+    ratio = 0;
+
+    modificationCount = -1;
     constructor(name) {
         // create a <canvas>, unless we already created one in a previous game
         var id = 'background-cache-' + name;
@@ -41,16 +53,16 @@ class BackgroundCache {
         this.c = this.canvas.getContext('2d');
 
         // the cache is empty at first
-        this.xmin = 0;
-        this.ymin = 0;
-        this.xmax = 0;
-        this.ymax = 0;
+        //this.xmin = 0;
+        //this.ymin = 0;
+        //this.xmax = 0;
+        //this.ymax = 0;
 
-        this.width = 0;
-        this.height = 0;
-        this.ratio = 0;
+        //this.width = 0;
+        //this.height = 0;
+        //this.ratio = 0;
 
-        this.modificationCount = -1;
+        //this.modificationCount = -1;
     }
 
     draw(c, xmin, ymin, xmax, ymax) {

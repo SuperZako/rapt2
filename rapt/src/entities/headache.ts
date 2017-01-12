@@ -8,6 +8,9 @@ var HEADACHE_RANGE = 6;
 var HEADACHE_CLOUD_RADIUS = HEADACHE_RADIUS * 0.5;
 
 class HeadacheChain {
+    points = [];
+    point: Vector;
+    angle = Math.random() * Math.PI * 2;
     constructor(center) {
         this.points = [];
         this.point = new Vector(center.x * gameScale, center.y * gameScale);
@@ -54,10 +57,14 @@ class HeadacheChain {
 // Headache.subclasses(HoveringEnemy);
 
 class Headache extends HoveringEnemy {
-    constructor(center, target) {
+    isAttached = false;
+    isTracking = false;
+    restingOffset = new Vector(0, -10);
+    chains = [];
+    constructor(center, public target) {
         // HoveringEnemy.prototype.constructor.call(this, ENEMY_HEADACHE, center, HEADACHE_RADIUS, HEADACHE_ELASTICITY);
         super(ENEMY_HEADACHE, center, HEADACHE_RADIUS, HEADACHE_ELASTICITY);
-        this.target = target;
+        // this.target = target;
         this.isAttached = false;
         this.isTracking = false;
         this.restingOffset = new Vector(0, -10);

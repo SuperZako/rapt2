@@ -8,13 +8,15 @@ var STALACBAT_SPRITE_RIGHT_WING = 2;
 
 // Stalacbat.subclasses(FreefallEnemy);
 class Stalacbat extends FreefallEnemy {
-    constructor(center, target) {
+    isFalling = false;
+    sprites = [new Sprite(), new Sprite(), new Sprite()];
+    constructor(center, public target) {
         //FreefallEnemy.prototype.constructor.call(this, ENEMY_STALACBAT, center, STALACBAT_RADIUS, 0);
         super(ENEMY_STALACBAT, center, STALACBAT_RADIUS, 0);
-        this.target = target;
-        this.isFalling = false;
+        // this.target = target;
+        // this.isFalling = false;
 
-        this.sprites = [new Sprite(), new Sprite(), new Sprite()];
+        // this.sprites = [new Sprite(), new Sprite(), new Sprite()];
         // Draw circle for body
         this.sprites[STALACBAT_SPRITE_BODY].drawGeometry = function (c) {
             c.strokeStyle = 'black';

@@ -7,11 +7,12 @@ var CORROSION_CLOUD_ACCEL = 10;
 // CorrosionCloud.subclasses(RotatingEnemy);
 
 class CorrosionCloud extends RotatingEnemy {
-    constructor(center, target) {
+    smoothedVelocity = new Vector(0, 0);
+    constructor(center, public target) {
         // RotatingEnemy.prototype.constructor.call(this, ENEMY_CLOUD, center, CORROSION_CLOUD_RADIUS, 0, 0);
         super(ENEMY_CLOUD, center, CORROSION_CLOUD_RADIUS, 0, 0);
-        this.target = target;
-        this.smoothedVelocity = new Vector(0, 0);
+        // this.target = target;
+        // this.smoothedVelocity = new Vector(0, 0);
     }
 
     canCollide() {

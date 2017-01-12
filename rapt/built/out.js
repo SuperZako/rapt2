@@ -1530,9 +1530,10 @@ var RotatingEnemy = (function (_super) {
         var _this = 
         // Enemy.prototype.constructor.call(this, type, elasticity);
         _super.call(this, type, elasticity) || this;
-        _this.hitCircle = new Circle(center, radius);
         _this.heading = heading;
+        _this.hitCircle = new Circle(center, radius);
         return _this;
+        // this.heading = heading;
     }
     RotatingEnemy.prototype.getShape = function () {
         return this.hitCircle;
@@ -1725,6 +1726,10 @@ var BouncyRocketLauncher = (function (_super) {
         _this.canFire = true;
         _this.angle = 0;
         _this.bodySprite = new Sprite();
+        // this.target = target;
+        // this.canFire = true;
+        // this.angle = 0;
+        // this.bodySprite = new Sprite();
         if (_this.target === gameState.playerA) {
             _this.bodySprite.drawGeometry = function (c) {
                 // End of gun
@@ -1830,6 +1835,8 @@ var CorrosionCloud = (function (_super) {
         _this.target = target;
         _this.smoothedVelocity = new Vector(0, 0);
         return _this;
+        // this.target = target;
+        // this.smoothedVelocity = new Vector(0, 0);
     }
     CorrosionCloud.prototype.canCollide = function () {
         return false;
@@ -1884,6 +1891,7 @@ var DoomMagnet = (function (_super) {
         // RotatingEnemy.prototype.constructor.call(this, ENEMY_MAGNET, center, DOOM_MAGNET_RADIUS, 0, DOOM_MAGNET_ELASTICITY);
         _super.call(this, ENEMY_MAGNET, center, DOOM_MAGNET_RADIUS, 0, DOOM_MAGNET_ELASTICITY) || this;
         _this.bodySprite = new Sprite();
+        // this.bodySprite = new Sprite();
         _this.bodySprite.drawGeometry = function (c) {
             var length = 0.15;
             var outerRadius = 0.15;
@@ -1992,6 +2000,13 @@ var Doorbell = (function (_super) {
         var _this = 
         //Enemy.prototype.constructor.call(this, ENEMY_DOORBELL, 1);
         _super.call(this, ENEMY_DOORBELL, 1) || this;
+        _this.behavior = behavior;
+        _this.visible = visible;
+        _this.rotationPercent = 1;
+        _this.restingAngle = randInRange(0, 2 * Math.PI);
+        _this.triggeredLastTick = false;
+        _this.triggeredThisTick = false;
+        _this.doors = [];
         _this.hitBox = AABB.makeAABB(center, DOORBELL_WIDTH, DOORBELL_HEIGHT);
         _this.rotationPercent = 1;
         _this.restingAngle = randInRange(0, 2 * Math.PI);
@@ -2267,6 +2282,8 @@ var HEADACHE_CLOUD_RADIUS = HEADACHE_RADIUS * 0.5;
 var HeadacheChain = (function () {
     function HeadacheChain(center) {
         this.points = [];
+        this.angle = Math.random() * Math.PI * 2;
+        this.points = [];
         this.point = new Vector(center.x * gameScale, center.y * gameScale);
         this.point.x += (Math.random() - 0.5) * HEADACHE_RADIUS;
         this.point.y += (Math.random() - 0.5) * HEADACHE_RADIUS;
@@ -2313,6 +2330,11 @@ var Headache = (function (_super) {
         // HoveringEnemy.prototype.constructor.call(this, ENEMY_HEADACHE, center, HEADACHE_RADIUS, HEADACHE_ELASTICITY);
         _super.call(this, ENEMY_HEADACHE, center, HEADACHE_RADIUS, HEADACHE_ELASTICITY) || this;
         _this.target = target;
+        _this.isAttached = false;
+        _this.isTracking = false;
+        _this.restingOffset = new Vector(0, -10);
+        _this.chains = [];
+        // this.target = target;
         _this.isAttached = false;
         _this.isTracking = false;
         _this.restingOffset = new Vector(0, -10);
@@ -2708,6 +2730,9 @@ var JetStream = (function (_super) {
         _this.direction = direction;
         _this.reloadAnimation = 0;
         _this.sprites = [new Sprite(), new Sprite()];
+        // this.direction = direction;
+        // this.reloadAnimation = 0;
+        // this.sprites = [new Sprite(), new Sprite()];
         _this.sprites[JET_STREAM_SPRITE_A].drawGeometry = _this.sprites[JET_STREAM_SPRITE_B].drawGeometry = function (c) {
             c.strokeStyle = 'black';
             c.beginPath();
@@ -3874,6 +3899,9 @@ var Stalacbat = (function (_super) {
         _this.target = target;
         _this.isFalling = false;
         _this.sprites = [new Sprite(), new Sprite(), new Sprite()];
+        // this.target = target;
+        // this.isFalling = false;
+        // this.sprites = [new Sprite(), new Sprite(), new Sprite()];
         // Draw circle for body
         _this.sprites[STALACBAT_SPRITE_BODY].drawGeometry = function (c) {
             c.strokeStyle = 'black';
@@ -4085,8 +4113,11 @@ var Wheeligator = (function (_super) {
         _super.call(this, ENEMY_WHEELIGATOR, center, WHEELIGATOR_RADIUS, WHEELIGATOR_ELASTICITY) || this;
         _this.hitGround = false;
         _this.angularVelocity = 0;
-        _this.startsRight = (Math.cos(angle) > 0);
         _this.bodySprite = new Sprite();
+        // this.hitGround = false;
+        // this.angularVelocity = 0;
+        // this.startsRight = (Math.cos(angle) > 0);
+        // this.bodySprite = new Sprite();
         _this.bodySprite.drawGeometry = function (c) {
             var rim = 0.1;
             c.strokeStyle = 'black';
@@ -4165,6 +4196,14 @@ var Wheeligator = (function (_super) {
 // class BackgroundCache
 var BackgroundCache = (function () {
     function BackgroundCache(name) {
+        this.xmin = 0;
+        this.ymin = 0;
+        this.xmax = 0;
+        this.ymax = 0;
+        this.width = 0;
+        this.height = 0;
+        this.ratio = 0;
+        this.modificationCount = -1;
         // create a <canvas>, unless we already created one in a previous game
         var id = 'background-cache-' + name;
         this.canvas = document.getElementById(id);
@@ -4176,14 +4215,14 @@ var BackgroundCache = (function () {
         }
         this.c = this.canvas.getContext('2d');
         // the cache is empty at first
-        this.xmin = 0;
-        this.ymin = 0;
-        this.xmax = 0;
-        this.ymax = 0;
-        this.width = 0;
-        this.height = 0;
-        this.ratio = 0;
-        this.modificationCount = -1;
+        //this.xmin = 0;
+        //this.ymin = 0;
+        //this.xmax = 0;
+        //this.ymax = 0;
+        //this.width = 0;
+        //this.height = 0;
+        //this.ratio = 0;
+        //this.modificationCount = -1;
     }
     BackgroundCache.prototype.draw = function (c, xmin, ymin, xmax, ymax) {
         var ratio = globalScaleFactor(); // Retina support

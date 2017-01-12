@@ -7,14 +7,18 @@ var WHEELIGATOR_FLOOR_ELASTICITY = 0.3;
 
 //Wheeligator.subclasses(WalkingEnemy);
 class Wheeligator extends WalkingEnemy {
+    hitGround = false;
+    angularVelocity = 0;
+    startsRight;
+    bodySprite = new Sprite();
     constructor(center, angle) {
         //WalkingEnemy.prototype.constructor.call(this, ENEMY_WHEELIGATOR, center, WHEELIGATOR_RADIUS, WHEELIGATOR_ELASTICITY);
         super(ENEMY_WHEELIGATOR, center, WHEELIGATOR_RADIUS, WHEELIGATOR_ELASTICITY);
-        this.hitGround = false;
-        this.angularVelocity = 0;
-        this.startsRight = (Math.cos(angle) > 0);
+        // this.hitGround = false;
+        // this.angularVelocity = 0;
+        // this.startsRight = (Math.cos(angle) > 0);
 
-        this.bodySprite = new Sprite();
+        // this.bodySprite = new Sprite();
         this.bodySprite.drawGeometry = function (c) {
             var rim = 0.1;
 

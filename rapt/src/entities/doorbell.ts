@@ -14,7 +14,13 @@ var DOORBELL_SLICES = 3;
 
 //Doorbell.subclasses(Enemy);
 class Doorbell extends Enemy {
-    constructor(center, behavior, visible) {
+    hitBox: AABB;
+    rotationPercent = 1;
+    restingAngle = randInRange(0, 2 * Math.PI);
+    triggeredLastTick = false;
+    triggeredThisTick = false;
+    doors = [];
+    constructor(center, public behavior, public visible) {
         //Enemy.prototype.constructor.call(this, ENEMY_DOORBELL, 1);
         super(ENEMY_DOORBELL, 1);
         this.hitBox = AABB.makeAABB(center, DOORBELL_WIDTH, DOORBELL_HEIGHT);

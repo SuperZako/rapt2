@@ -1,389 +1,4 @@
 (function () {
-    function Contact(contactPoint, normal, proportionOfDelta) {
-        this.proportionOfDelta = proportionOfDelta;;
-        this.contactPoint = contactPoint;;
-        this.normal = normal;;
-
-    };
-    function EdgeQuad() {
-        this.nullifyEdges();;
-        this.quantities = [0, 0, 0, 0];;
-
-    };
-    EdgeQuad.prototype.nullifyEdges = function () {
-        this.edges = [null, null, null, null];;
-
-    };;
-    EdgeQuad.prototype.minimize = function (edge, quantity) {
-        var orientation = edge.getOrientation();
-        if (this.edges[orientation] == null || quantity < this.quantities[orientation]) {
-            this.edges[orientation] = edge;;
-            this.quantities[orientation] = quantity;;
-        };
-
-    };;
-    EdgeQuad.prototype.throwOutIfGreaterThan = function (minimum) {
-        for (var i = 0; i < 4; i++) {
-            if (this.quantities[i] > minimum) {
-                this.edges[i] = null;;
-            };
-        };
-
-    };;
-    var edgeQuad = new EdgeQuad();
-
-
-    var SHAPE_CIRCLE = 0;
-    var SHAPE_AABB = 1;
-    var SHAPE_POLYGON = 2;
-    function Entity() {
-        this.velocity = new Vector(0, 0);;
-        this._isDead = false;;
-
-    };
-    Entity.prototype.getVelocity = function () {
-        return this.velocity;;
-
-    };;
-    Entity.prototype.setVelocity = function (vel) {
-        this.velocity = vel;;
-
-    };;
-    Entity.prototype.isDead = function () {
-        return this._isDead;;
-
-    };;
-    Entity.prototype.setDead = function (isDead) {
-        if (this._isDead === isDead) return;;
-        this._isDead = isDead;;
-        if (this._isDead) this.onDeath(); else this.onRespawn();;
-
-    };;
-    Entity.prototype.getCenter = function () {
-        return this.getShape().getCenter();;
-
-    };;
-    Entity.prototype.setCenter = function (vec) {
-        this.getShape().moveTo(vec);;
-
-    };;
-    Entity.prototype.getColor = function () {
-        throw 'Entity.getColor() unimplemented';
-
-    };;
-    Entity.prototype.getShape = function () {
-        throw 'Entity.getShape() unimplemented';
-
-    };;
-    Entity.prototype.getCenter = function () {
-        return this.getShape().getCenter();;
-
-    };;
-    Entity.prototype.setCenter = function (center) {
-        this.getShape().moveTo(center);;
-
-    };;
-    Entity.prototype.isOnFloor = function () {
-        CollisionDetector.onEntityWorld(this, edgeQuad, gameState.world);;
-        return (edgeQuad.edges[EDGE_FLOOR] != null);;
-
-    };;
-    Entity.prototype.tick = function () {
-        throw 'Entity.tick() unimplemented';
-
-    };;
-    Entity.prototype.draw = function () {
-        throw 'Entity.draw() unimplemented';
-
-    };;
-    Entity.prototype.onDeath = function () {
-
-    };;
-    Entity.prototype.onRespawn = function () {
-
-    };;
-    var PARTICLE_CIRCLE = 0;
-    var PARTICLE_TRIANGLE = 1;
-    var PARTICLE_LINE = 2;
-    var PARTICLE_CUSTOM = 3;
-    function randOrTakeFirst(min, max) {
-        return (typeof max !== 'undefined') ? (min + (max - min) * Math.random()) : min;;
-
-    };
-    function cssRGBA(r, g, b, a) {
-        return 'rgba(' + Math.round(r * 255) + ', ' + Math.round(g * 255) + ', ' + Math.round(b * 255) + ', ' + a + ')';;
-
-    };
-    function ParticleInstance() {
-
-    };
-    ParticleInstance.prototype.init = function () {
-        this.m_bounces = 0;;
-        this.m_type = 0;;
-        this.m_red = 0;;
-        this.m_green = 0;;
-        this.m_blue = 0;;
-        this.m_alpha = 0;;
-        this.m_radius = 0;;
-        this.m_gravity = 0;;
-        this.m_elasticity = 0;;
-        this.m_decay = 1;;
-        this.m_expand = 1;;
-        this.m_position = new Vector(0, 0);;
-        this.m_velocity = new Vector(0, 0);;
-        this.m_angle = 0;;
-        this.m_angularVelocity = 0;;
-        this.m_drawFunc = null;;
-
-    };;
-    ParticleInstance.prototype.tick = function (seconds) {
-        var _0, _1, _2, _3, _4;
-        if (this.m_bounces < 0) {
-            return false;;
-        };
-        this.m_alpha *= Math.pow(this.m_decay, seconds);;
-        this.m_radius *= Math.pow(this.m_expand, seconds);;
-        this.m_velocity.y -= this.m_gravity * seconds;;
-        this.m_position = (_0 = this.m_position, _1 = (_3 = this.m_velocity, _4 = new Vector(0, 0), _4.x = _3.x * seconds, _4.y = _3.y * seconds, _4), _2 = new Vector(0, 0), _2.x = _0.x + _1.x, _2.y = _0.y + _1.y, _2);;
-        this.m_angle += this.m_angularVelocity * seconds;;
-        if (this.m_alpha < 0.05) {
-            this.m_bounces = -1;;
-        };
-        return (this.m_bounces >= 0);;
-
-    };;
-    ParticleInstance.prototype.draw = function (c) {
-        var _0, _1, _2, _3, _4, _5;
-        switch (this.m_type) {
-            case PARTICLE_CIRCLE: {
-                c.fillStyle = cssRGBA(this.m_red, this.m_green, this.m_blue, this.m_alpha);;
-                c.beginPath();;
-                c.arc(this.m_position.x, this.m_position.y, this.m_radius, 0, 2 * Math.PI, false);;
-                c.fill();;
-                break;
-            }
-            case PARTICLE_TRIANGLE: {
-                var v1 = (_0 = this.m_position, _1 = (_3 = this.m_velocity, _4 = new Vector(0, 0), _4.x = _3.x * 0.04, _4.y = _3.y * 0.04, _4), _2 = new Vector(0, 0), _2.x = _0.x + _1.x, _2.y = _0.y + _1.y, _2);
-                var v2 = (_0 = this.m_position, _1 = (_3 = (_4 = this.m_velocity, _5 = new Vector(0, 0), _5.x = _4.y, _5.y = -_4.x, _5), _3.x *= 0.01, _3.y *= 0.01, _3), _2 = new Vector(0, 0), _2.x = _0.x - _1.x, _2.y = _0.y - _1.y, _2);
-                var v3 = (_0 = this.m_position, _1 = (_3 = (_4 = this.m_velocity, _5 = new Vector(0, 0), _5.x = _4.y, _5.y = -_4.x, _5), _3.x *= 0.01, _3.y *= 0.01, _3), _2 = new Vector(0, 0), _2.x = _0.x + _1.x, _2.y = _0.y + _1.y, _2);
-                c.fillStyle = cssRGBA(this.m_red, this.m_green, this.m_blue, this.m_alpha);;
-                c.beginPath();;
-                c.moveTo(v1.x, v1.y);;
-                c.lineTo(v2.x, v2.y);;
-                c.lineTo(v3.x, v3.y);;
-                c.closePath();;
-                c.fill();;
-                break;
-            }
-            case PARTICLE_LINE: {
-                var dx = Math.cos(this.m_angle) * this.m_radius;
-                var dy = Math.sin(this.m_angle) * this.m_radius;
-                c.strokeStyle = cssRGBA(this.m_red, this.m_green, this.m_blue, this.m_alpha);;
-                c.beginPath();;
-                c.moveTo(this.m_position.x - dx, this.m_position.y - dy);;
-                c.lineTo(this.m_position.x + dx, this.m_position.y + dy);;
-                c.stroke();;
-                break;
-            }
-            case PARTICLE_CUSTOM: {
-                c.fillStyle = cssRGBA(this.m_red, this.m_green, this.m_blue, this.m_alpha);;
-                c.save();;
-                c.translate(this.m_position.x, this.m_position.y);;
-                c.rotate(this.m_angle);;
-                this.m_drawFunc(c);;
-                c.restore();;
-                break;
-            }
-        };
-
-    };;
-    ParticleInstance.prototype.bounces = function (min, max) {
-        this.m_bounces = Math.round(randOrTakeFirst(min, max));;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.circle = function () {
-        this.m_type = PARTICLE_CIRCLE;;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.triangle = function () {
-        this.m_type = PARTICLE_TRIANGLE;;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.line = function () {
-        this.m_type = PARTICLE_LINE;;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.custom = function (drawFunc) {
-        this.m_type = PARTICLE_CUSTOM;;
-        this.m_drawFunc = drawFunc;;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.color = function (r, g, b, a) {
-        this.m_red = r;;
-        this.m_green = g;;
-        this.m_blue = b;;
-        this.m_alpha = a;;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.mixColor = function (r, g, b, a) {
-        var _0;
-        var percent = Math.random();
-        this.m_red = (_0 = this.m_red, _0 + (r - _0) * percent);;
-        this.m_green = (_0 = this.m_green, _0 + (g - _0) * percent);;
-        this.m_blue = (_0 = this.m_blue, _0 + (b - _0) * percent);;
-        this.m_alpha = (_0 = this.m_alpha, _0 + (a - _0) * percent);;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.radius = function (min, max) {
-        this.m_radius = randOrTakeFirst(min, max);;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.gravity = function (min, max) {
-        this.m_gravity = randOrTakeFirst(min, max);;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.elasticity = function (min, max) {
-        this.m_elasticity = randOrTakeFirst(min, max);;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.decay = function (min, max) {
-        this.m_decay = randOrTakeFirst(min, max);;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.expand = function (min, max) {
-        this.m_expand = randOrTakeFirst(min, max);;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.angle = function (min, max) {
-        this.m_angle = randOrTakeFirst(min, max);;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.angularVelocity = function (min, max) {
-        this.m_angularVelocity = randOrTakeFirst(min, max);;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.position = function (position) {
-        this.m_position = position;;
-        return this;;
-
-    };;
-    ParticleInstance.prototype.velocity = function (velocity) {
-        this.m_velocity = velocity;;
-        return this;;
-
-    };;
-    var Particle = (function () {
-        var particles = new Array(3000);
-        var maxCount = particles.length;
-        var count = 0;
-        for (var i = 0; i < particles.length; i++) {
-            particles[i] = new ParticleInstance();;
-        };
-        function Particle() {
-            var particle = (count < maxCount) ? particles[count++] : particles[maxCount - 1];
-            particle.init();;
-            return particle;;
-
-        };
-        Particle.reset = function () {
-            count = 0;;
-
-        };;
-        Particle.tick = function (seconds) {
-            for (var i = 0; i < count; i++) {
-                var isAlive = particles[i].tick(seconds);
-                if (!isAlive) {
-                    var temp = particles[i];
-                    particles[i] = particles[count - 1];;
-                    particles[count - 1] = temp;;
-                    count--;;
-                    i--;;
-                };
-            };
-
-        };;
-        Particle.draw = function (c) {
-            for (var i = 0; i < count; i++) {
-                var particle = particles[i];
-                var pos = particle.m_position;
-                if (pos.x >= drawMinX && pos.y >= drawMinY && pos.x <= drawMaxX && pos.y <= drawMaxY) {
-                    particle.draw(c);;
-                };
-            };
-
-        };;
-        return Particle;;
-
-    })();
-    function BackgroundCache(name) {
-        var id = 'background-cache-' + name;
-        this.canvas = document.getElementById(id);;
-        if (this.canvas === null) {
-            this.canvas = document.createElement('canvas');;
-            this.canvas.id = id;;
-            this.canvas.style.display = 'none';;
-            document.body.appendChild(this.canvas);;
-        };
-        this.c = this.canvas.getContext('2d');;
-        this.xmin = 0;;
-        this.ymin = 0;;
-        this.xmax = 0;;
-        this.ymax = 0;;
-        this.width = 0;;
-        this.height = 0;;
-        this.ratio = 0;;
-        this.modificationCount = -1;;
-
-    };
-    BackgroundCache.prototype.draw = function (c, xmin, ymin, xmax, ymax) {
-        var ratio = globalScaleFactor();
-        if (this.modificationCount != gameState.modificationCount || xmin < this.xmin || xmax > this.xmax || ymin < this.ymin || ymax > this.ymax || this.ratio != ratio) {
-            this.modificationCount = gameState.modificationCount;;
-            var viewportWidth = 2 * (xmax - xmin);
-            var viewportHeight = 2 * (ymax - ymin);
-            this.xmin = xmin - viewportWidth / 4;;
-            this.ymin = ymin - viewportHeight / 4;;
-            this.xmax = xmax + viewportWidth / 4;;
-            this.ymax = ymax + viewportHeight / 4;;
-            var width = Math.ceil(viewportWidth * gameScale);
-            var height = Math.ceil(viewportHeight * gameScale);
-            this.width = width;;
-            this.height = height;;
-            this.canvas.width = Math.round(this.width * ratio);;
-            this.canvas.height = Math.round(this.height * ratio);;
-            this.c.scale(ratio, ratio);;
-            this.c.fillStyle = '#BFBFBF';;
-            this.c.fillRect(0, 0, width, height);;
-            this.c.save();;
-            this.c.translate(width / 2, height / 2);;
-            this.c.scale(gameScale, -gameScale);;
-            this.c.lineWidth = 1 / gameScale;;
-            this.c.translate(-(this.xmin + this.xmax) / 2, -(this.ymin + this.ymax) / 2);;
-            gameState.world.draw(this.c, this.xmin, this.ymin, this.xmax, this.ymax);;
-            this.c.restore();;
-        };
-        c.mozImageSmoothingEnabled = false;;
-        c.save();;
-        var ratio = globalScaleFactor();
-        c.setTransform(ratio, 0, 0, ratio, 0, 0);;
-        c.drawImage(this.canvas, Math.round((this.xmin - xmin) * gameScale), Math.round((2 * ymin - ymax - this.ymin) * gameScale), this.width, this.height);;
-        c.restore();;
-
-    };;
     var useBackgroundCache = true;
     function SplitScreenCamera(playerA, playerB, width, height) {
         this.playerA = playerA;;
@@ -2903,431 +2518,431 @@
         };
 
     };;
-    var ENTER_KEY = 13;
-    var ESCAPE_KEY = 27;
-    var SPACEBAR = 32;
-    var UP_ARROW = 38;
-    var DOWN_ARROW = 40;
-    function getMenuUrl(username) {
-        return '//' + location.host + '/data/' + username + '/';;
+    //var ENTER_KEY = 13;
+    //var ESCAPE_KEY = 27;
+    //var SPACEBAR = 32;
+    //var UP_ARROW = 38;
+    //var DOWN_ARROW = 40;
+    //function getMenuUrl(username) {
+    //    return '//' + location.host + '/data/' + username + '/';;
 
-    };
-    function getLevelUrl(username, levelname) {
-        //return '//' + location.host + '/data/' + username + '/' + levelname + '/';;
-        return '//' + location.host + '/data/' + "Intro 1.json";
+    //};
+    //function getLevelUrl(username, levelname) {
+    //    //return '//' + location.host + '/data/' + username + '/' + levelname + '/';;
+    //    return '//' + location.host + '/data/' + "Intro 1.json";
 
-    };
-    function text2html(text) {
-        return text ? text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : '';;
+    //};
+    //function text2html(text) {
+    //    return text ? text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : '';;
 
-    };
-    function ajaxGet(what, url, onSuccess) {
-        function showError() {
-            $('#loadingScreen').html('Could not load ' + what + ' from<br><b>' + text2html(url) + '</b>');;
+    //};
+    //function ajaxGet(what, url, onSuccess) {
+    //    function showError() {
+    //        $('#loadingScreen').html('Could not load ' + what + ' from<br><b>' + text2html(url) + '</b>');;
 
-        };
-        $.ajax({
-            'url': url,
-            'type': 'GET',
-            'cache': false,
-            'dataType': 'json',
-            'success': function (data, status, request) {
-                if (data != null) {
-                    onSuccess(data);;
-                } else {
-                    showError();;
-                };
+    //    };
+    //    $.ajax({
+    //        'url': url,
+    //        'type': 'GET',
+    //        'cache': false,
+    //        'dataType': 'json',
+    //        'success': function (data, status, request) {
+    //            if (data != null) {
+    //                onSuccess(data);;
+    //            } else {
+    //                showError();;
+    //            };
 
-            },
-            'error': function (request, status, error) {
-                showError();;
+    //        },
+    //        'error': function (request, status, error) {
+    //            showError();;
 
-            }
-        });;
+    //        }
+    //    });;
 
-    };
-    function globalScaleFactor() {
-        return 1;;
+    //};
+    //function globalScaleFactor() {
+    //    return 1;;
 
-    };
-    function MenuItem(levelname, title, difficulty) {
-        this.levelname = levelname;;
-        this.title = title;;
-        this.difficulty = difficulty;;
+    //};
+    //function MenuItem(levelname, title, difficulty) {
+    //    this.levelname = levelname;;
+    //    this.title = title;;
+    //    this.difficulty = difficulty;;
 
-    };
-    function Menu() {
-        this.username = null;;
-        this.items = [];;
-        this.isLoading = false;;
-        this.selectedIndex = -1;;
+    //};
+    //function Menu() {
+    //    this.username = null;;
+    //    this.items = [];;
+    //    this.isLoading = false;;
+    //    this.selectedIndex = -1;;
 
-    };
-    Menu.prototype.load = function (username, onSuccess) {
-        if (!this.isLoading && this.username == username) {
-            if (onSuccess) onSuccess();;
-            return;;
-        };
-        if (this.isLoading && this.username == username) {
-            return;;
-        };
-        this.username = username;;
-        this.items = [];;
-        this.isLoading = true;;
-        var this_ = this;
-        ajaxGet('menu', getMenuUrl(username), function (json) {
-            var levels = json['levels'];
-            for (var i = 0; i < levels.length; i++) {
-                var level = levels[i];
-                this_.items.push(new MenuItem(level['html_title'], level['title'], level['difficulty']));;
-            };
-            this_.isLoading = false;;
-            this_.selectedIndex = 0;;
-            if (onSuccess) onSuccess();;
+    //};
+    //Menu.prototype.load = function (username, onSuccess) {
+    //    if (!this.isLoading && this.username == username) {
+    //        if (onSuccess) onSuccess();;
+    //        return;;
+    //    };
+    //    if (this.isLoading && this.username == username) {
+    //        return;;
+    //    };
+    //    this.username = username;;
+    //    this.items = [];;
+    //    this.isLoading = true;;
+    //    var this_ = this;
+    //    ajaxGet('menu', getMenuUrl(username), function (json) {
+    //        var levels = json['levels'];
+    //        for (var i = 0; i < levels.length; i++) {
+    //            var level = levels[i];
+    //            this_.items.push(new MenuItem(level['html_title'], level['title'], level['difficulty']));;
+    //        };
+    //        this_.isLoading = false;;
+    //        this_.selectedIndex = 0;;
+    //        if (onSuccess) onSuccess();;
 
-        });;
+    //    });;
 
-    };;
-    Menu.prototype.updateSelectedIndex = function () {
-        var selectedLevel = $('#level' + this.selectedIndex);
-        if (selectedLevel.length > 0) {
-            $('.level').blur();;
-            $(selectedLevel).focus();;
-            var scrollTop = $('#levelScreen').scrollTop() + $(selectedLevel).offset().top - 475;
-            $('#levelScreen').scrollTop(scrollTop);;
-        };
+    //};;
+    //Menu.prototype.updateSelectedIndex = function () {
+    //    var selectedLevel = $('#level' + this.selectedIndex);
+    //    if (selectedLevel.length > 0) {
+    //        $('.level').blur();;
+    //        $(selectedLevel).focus();;
+    //        var scrollTop = $('#levelScreen').scrollTop() + $(selectedLevel).offset().top - 475;
+    //        $('#levelScreen').scrollTop(scrollTop);;
+    //    };
 
-    };;
-    Menu.prototype.show = function () {
-        if (this.isLoading) {
-            $('#canvas').hide();;
-            $('#levelScreen').hide();;
-            $('#loadingScreen').show();;
-            $('#loadingScreen').html('Loading...');;
-        } else {
-            $('#canvas').hide();;
-            $('#levelScreen').show();;
-            $('#loadingScreen').hide();;
-            var html = '<h2>';
-            html += (this.username == 'rapt') ? 'Official Levels' : 'Levels made by ' + text2html(this.username);;
-            html += '</h2><div id="levels">';;
-            var prevDifficulty = null;
-            for (var i = 0; i < this.items.length; i++) {
-                var item = this.items[i];
-                var difficulty = ['Easy', 'Medium', 'Hard', 'Brutal', 'Demoralizing'][item.difficulty];
-                if (difficulty != prevDifficulty) {
-                    prevDifficulty = difficulty;;
-                    html += '<div class="difficulty">' + difficulty + '</div>';;
-                };
-                html += '<a class="level" id="level' + i + '" href="' + text2html(Hash.getLevelHash(this.username, item.levelname)) + '">';;
-                var s = stats.getStatsForLevel(this.username, item.levelname);
-                html += '<img src="/images/' + (s['gotAllCogs'] ? 'checkplus' : s['complete'] ? 'check' : 'empty') + '.png">';;
-                html += text2html(item.title) + '</a>';;
-            };
-            html += '</div>';;
-            $('#levelScreen').html(html);;
-            var this_ = this;
-            $('.level').hover(function () {
-                $(this).focus();;
+    //};;
+    //Menu.prototype.show = function () {
+    //    if (this.isLoading) {
+    //        $('#canvas').hide();;
+    //        $('#levelScreen').hide();;
+    //        $('#loadingScreen').show();;
+    //        $('#loadingScreen').html('Loading...');;
+    //    } else {
+    //        $('#canvas').hide();;
+    //        $('#levelScreen').show();;
+    //        $('#loadingScreen').hide();;
+    //        var html = '<h2>';
+    //        html += (this.username == 'rapt') ? 'Official Levels' : 'Levels made by ' + text2html(this.username);;
+    //        html += '</h2><div id="levels">';;
+    //        var prevDifficulty = null;
+    //        for (var i = 0; i < this.items.length; i++) {
+    //            var item = this.items[i];
+    //            var difficulty = ['Easy', 'Medium', 'Hard', 'Brutal', 'Demoralizing'][item.difficulty];
+    //            if (difficulty != prevDifficulty) {
+    //                prevDifficulty = difficulty;;
+    //                html += '<div class="difficulty">' + difficulty + '</div>';;
+    //            };
+    //            html += '<a class="level" id="level' + i + '" href="' + text2html(Hash.getLevelHash(this.username, item.levelname)) + '">';;
+    //            var s = stats.getStatsForLevel(this.username, item.levelname);
+    //            html += '<img src="/images/' + (s['gotAllCogs'] ? 'checkplus' : s['complete'] ? 'check' : 'empty') + '.png">';;
+    //            html += text2html(item.title) + '</a>';;
+    //        };
+    //        html += '</div>';;
+    //        $('#levelScreen').html(html);;
+    //        var this_ = this;
+    //        $('.level').hover(function () {
+    //            $(this).focus();;
 
-            });;
-            $('.level').focus(function () {
-                this_.selectedIndex = this.id.substr(5);;
+    //        });;
+    //        $('.level').focus(function () {
+    //            this_.selectedIndex = this.id.substr(5);;
 
-            });;
-            this.updateSelectedIndex();;
-        };
+    //        });;
+    //        this.updateSelectedIndex();;
+    //    };
 
-    };;
-    Menu.prototype.indexOfLevel = function (username, levelname) {
-        if (username === this.username) {
-            for (var i = 0; i < this.items.length; i++) {
-                if (levelname === this.items[i].levelname) {
-                    return i;;
-                };
-            };
-        };
-        return -1;;
+    //};;
+    //Menu.prototype.indexOfLevel = function (username, levelname) {
+    //    if (username === this.username) {
+    //        for (var i = 0; i < this.items.length; i++) {
+    //            if (levelname === this.items[i].levelname) {
+    //                return i;;
+    //            };
+    //        };
+    //    };
+    //    return -1;;
 
-    };;
-    Menu.prototype.isLastLevel = function (username, levelname) {
-        if (username !== this.username) {
-            return true;;
-        } else {
-            return this.indexOfLevel(username, levelname) >= this.items.length - 1;;
-        };
+    //};;
+    //Menu.prototype.isLastLevel = function (username, levelname) {
+    //    if (username !== this.username) {
+    //        return true;;
+    //    } else {
+    //        return this.indexOfLevel(username, levelname) >= this.items.length - 1;;
+    //    };
 
-    };;
-    Menu.prototype.keyDown = function (e) {
-        if (e.which == UP_ARROW) {
-            if (this.selectedIndex > 0) this.selectedIndex--;;
-            this.updateSelectedIndex();;
-        } else if (e.which == DOWN_ARROW) {
-            if (this.selectedIndex < this.items.length - 1) this.selectedIndex++;;
-            this.updateSelectedIndex();;
-        };
+    //};;
+    //Menu.prototype.keyDown = function (e) {
+    //    if (e.which == UP_ARROW) {
+    //        if (this.selectedIndex > 0) this.selectedIndex--;;
+    //        this.updateSelectedIndex();;
+    //    } else if (e.which == DOWN_ARROW) {
+    //        if (this.selectedIndex < this.items.length - 1) this.selectedIndex++;;
+    //        this.updateSelectedIndex();;
+    //    };
 
-    };;
-    Menu.prototype.keyUp = function (e) {
+    //};;
+    //Menu.prototype.keyUp = function (e) {
 
-    };;
-    function Level() {
-        this.username = null;;
-        this.levelname = null;;
-        this.isLoading = false;;
-        this.width = 800;;
-        this.height = 600;;
-        this.ratio = 0;;
-        this.canvas = $('#canvas')[0];;
-        this.context = this.canvas.getContext('2d');;
-        this.lastTime = new Date();;
-        this.game = null;;
-        this.json = null;;
+    //};;
+    //function Level() {
+    //    this.username = null;;
+    //    this.levelname = null;;
+    //    this.isLoading = false;;
+    //    this.width = 800;;
+    //    this.height = 600;;
+    //    this.ratio = 0;;
+    //    this.canvas = $('#canvas')[0];;
+    //    this.context = this.canvas.getContext('2d');;
+    //    this.lastTime = new Date();;
+    //    this.game = null;;
+    //    this.json = null;;
 
-    };
-    Level.prototype.tick = function () {
-        var currentTime = new Date();
-        var seconds = (currentTime - this.lastTime) / 1000;
-        this.lastTime = currentTime;;
-        var ratio = globalScaleFactor();
-        if (ratio != this.ratio) {
-            this.canvas.width = Math.round(this.width * ratio);;
-            this.canvas.height = Math.round(this.height * ratio);;
-            this.canvas.style.width = this.width + 'px';;
-            this.canvas.style.height = this.height + 'px';;
-            this.context.scale(ratio, ratio);;
-        };
-        if (this.game != null) {
-            if (seconds > 0 && seconds < 1) this.game.tick(seconds);;
-            this.game.lastLevel = menu.isLastLevel(this.username, this.levelname);;
-            this.game.draw(this.context);;
-        };
+    //};
+    //Level.prototype.tick = function () {
+    //    var currentTime = new Date();
+    //    var seconds = (currentTime - this.lastTime) / 1000;
+    //    this.lastTime = currentTime;;
+    //    var ratio = globalScaleFactor();
+    //    if (ratio != this.ratio) {
+    //        this.canvas.width = Math.round(this.width * ratio);;
+    //        this.canvas.height = Math.round(this.height * ratio);;
+    //        this.canvas.style.width = this.width + 'px';;
+    //        this.canvas.style.height = this.height + 'px';;
+    //        this.context.scale(ratio, ratio);;
+    //    };
+    //    if (this.game != null) {
+    //        if (seconds > 0 && seconds < 1) this.game.tick(seconds);;
+    //        this.game.lastLevel = menu.isLastLevel(this.username, this.levelname);;
+    //        this.game.draw(this.context);;
+    //    };
 
-    };;
-    Level.prototype.restart = function () {
-        Particle.reset();;
-        this.game = new Game();;
-        this.game.resize(this.width, this.height);;
-        gameState.loadLevelFromJSON(this.json);;
-        var this_ = this;
-        this.game.onWin = function () {
-            var gotAllCogs = gameState.stats[STAT_COGS_COLLECTED] == gameState.stats[STAT_NUM_COGS];
-            var s = stats.getStatsForLevel(this_.username, this_.levelname);
-            stats.setStatsForLevel(this_.username, this_.levelname, true, s['gotAllCogs'] || gotAllCogs);;
+    //};;
+    //Level.prototype.restart = function () {
+    //    Particle.reset();;
+    //    this.game = new Game();;
+    //    this.game.resize(this.width, this.height);;
+    //    gameState.loadLevelFromJSON(this.json);;
+    //    var this_ = this;
+    //    this.game.onWin = function () {
+    //        var gotAllCogs = gameState.stats[STAT_COGS_COLLECTED] == gameState.stats[STAT_NUM_COGS];
+    //        var s = stats.getStatsForLevel(this_.username, this_.levelname);
+    //        stats.setStatsForLevel(this_.username, this_.levelname, true, s['gotAllCogs'] || gotAllCogs);;
 
-        };;
+    //    };;
 
-    };;
-    Level.prototype.load = function (username, levelname, onSuccess) {
-        this.username = username;;
-        this.levelname = levelname;;
-        this.isLoading = true;;
-        var this_ = this;
-        ajaxGet('level', getLevelUrl(username, levelname), function (json) {
-            this_.json = json;//JSON.parse(json['data']);;
-            this_.restart();;
-            this_.lastTime = new Date();;
-            this_.isLoading = false;;
-            if (onSuccess) onSuccess();;
+    //};;
+    //Level.prototype.load = function (username, levelname, onSuccess) {
+    //    this.username = username;;
+    //    this.levelname = levelname;;
+    //    this.isLoading = true;;
+    //    var this_ = this;
+    //    ajaxGet('level', getLevelUrl(username, levelname), function (json) {
+    //        this_.json = json;//JSON.parse(json['data']);;
+    //        this_.restart();;
+    //        this_.lastTime = new Date();;
+    //        this_.isLoading = false;;
+    //        if (onSuccess) onSuccess();;
 
-        });;
+    //    });;
 
-    };;
-    Level.prototype.show = function () {
-        if (this.isLoading) {
-            $('#canvas').hide();;
-            $('#levelScreen').hide();;
-            $('#loadingScreen').show();;
-            $('#loadingScreen').html('Loading...');;
-        } else {
-            $('#canvas').show();;
-            $('#levelScreen').hide();;
-            $('#loadingScreen').hide();;
-        };
+    //};;
+    //Level.prototype.show = function () {
+    //    if (this.isLoading) {
+    //        $('#canvas').hide();;
+    //        $('#levelScreen').hide();;
+    //        $('#loadingScreen').show();;
+    //        $('#loadingScreen').html('Loading...');;
+    //    } else {
+    //        $('#canvas').show();;
+    //        $('#levelScreen').hide();;
+    //        $('#loadingScreen').hide();;
+    //    };
 
-    };;
-    Level.prototype.keyDown = function (e) {
-        if (this.game != null) {
-            this.game.keyDown(e);;
-            if (e.which == SPACEBAR) {
-                if (gameState.gameStatus === GAME_LOST) {
-                    this.restart();;
-                } else if (gameState.gameStatus === GAME_WON) {
-                    if (menu.isLastLevel(this.username, this.levelname)) {
-                        hash.setHash(this.username, null);;
-                    } else {
-                        var index = menu.indexOfLevel(this.username, this.levelname);
-                        hash.setHash(this.username, menu.items[index + 1].levelname);;
-                    };
-                };
-            };
-        };
+    //};;
+    //Level.prototype.keyDown = function (e) {
+    //    if (this.game != null) {
+    //        this.game.keyDown(e);;
+    //        if (e.which == SPACEBAR) {
+    //            if (gameState.gameStatus === GAME_LOST) {
+    //                this.restart();;
+    //            } else if (gameState.gameStatus === GAME_WON) {
+    //                if (menu.isLastLevel(this.username, this.levelname)) {
+    //                    hash.setHash(this.username, null);;
+    //                } else {
+    //                    var index = menu.indexOfLevel(this.username, this.levelname);
+    //                    hash.setHash(this.username, menu.items[index + 1].levelname);;
+    //                };
+    //            };
+    //        };
+    //    };
 
-    };;
-    Level.prototype.keyUp = function (e) {
-        if (this.game != null) {
-            this.game.keyUp(e);;
-        };
+    //};;
+    //Level.prototype.keyUp = function (e) {
+    //    if (this.game != null) {
+    //        this.game.keyUp(e);;
+    //    };
 
-    };;
-    function Hash() {
-        this.username = null;;
-        this.levelname = null;;
-        this.hash = null;;
-        this.prevHash = null;;
+    //};;
+    //function Hash() {
+    //    this.username = null;;
+    //    this.levelname = null;;
+    //    this.hash = null;;
+    //    this.prevHash = null;;
 
-    };
-    Hash.prototype.hasChanged = function () {
-        if (this.hash != location.hash) {
-            this.prevHash = this.hash;;
-            this.hash = location.hash;;
-            var levelMatches = /^#\/?([^\/]+)\/([^\/]+)\/?$/.exec(this.hash);
-            var userMatches = /^#\/?([^\/]+)\/?$/.exec(this.hash);
-            if (levelMatches != null) {
-                this.username = levelMatches[1];;
-                this.levelname = levelMatches[2];;
-            } else if (userMatches != null) {
-                this.username = userMatches[1];;
-                this.levelname = null;;
-            } else {
-                this.username = null;;
-                this.levelname = null;;
-            };
-            return true;;
-        };
-        return false;;
+    //};
+    //Hash.prototype.hasChanged = function () {
+    //    if (this.hash != location.hash) {
+    //        this.prevHash = this.hash;;
+    //        this.hash = location.hash;;
+    //        var levelMatches = /^#\/?([^\/]+)\/([^\/]+)\/?$/.exec(this.hash);
+    //        var userMatches = /^#\/?([^\/]+)\/?$/.exec(this.hash);
+    //        if (levelMatches != null) {
+    //            this.username = levelMatches[1];;
+    //            this.levelname = levelMatches[2];;
+    //        } else if (userMatches != null) {
+    //            this.username = userMatches[1];;
+    //            this.levelname = null;;
+    //        } else {
+    //            this.username = null;;
+    //            this.levelname = null;;
+    //        };
+    //        return true;;
+    //    };
+    //    return false;;
 
-    };;
-    Hash.prototype.setHash = function (username, levelname) {
-        var newHash = '#/' + username + '/' + (levelname ? levelname + '/' : '');
-        if (this.prevHash === newHash) {
-            history.back();;
-        } else {
-            this.username = username;;
-            this.levelname = levelname;;
-            location.hash = newHash;;
-        };
+    //};;
+    //Hash.prototype.setHash = function (username, levelname) {
+    //    var newHash = '#/' + username + '/' + (levelname ? levelname + '/' : '');
+    //    if (this.prevHash === newHash) {
+    //        history.back();;
+    //    } else {
+    //        this.username = username;;
+    //        this.levelname = levelname;;
+    //        location.hash = newHash;;
+    //    };
 
-    };;
-    Hash.getMenuHash = function (username) {
-        return '#/' + username + '/';;
+    //};;
+    //Hash.getMenuHash = function (username) {
+    //    return '#/' + username + '/';;
 
-    };;
-    Hash.getLevelHash = function (username, levelname) {
-        return '#/' + username + '/' + levelname + '/';;
+    //};;
+    //Hash.getLevelHash = function (username, levelname) {
+    //    return '#/' + username + '/' + levelname + '/';;
 
-    };;
-    var stats = null;
-    var hash = null;
-    var menu = null;
-    var level = null;
-    var keyToChange = null;
-    function scrollGameIntoWindow() {
-        var windowTop = $('body').scrollTop(), windowHeight = $(window).height();
-        var gameTop = $('#game').offset().top, gameHeight = $('#game').outerHeight();
-        if (gameTop < windowTop || gameTop + gameHeight > windowTop + windowHeight) {
-            $('html, body').animate({
-                scrollTop: gameTop + (gameHeight - windowHeight) / 2
-            });;
-        };
+    //};;
+    //var stats = null;
+    //var hash = null;
+    //var menu = null;
+    //var level = null;
+    //var keyToChange = null;
+    //function scrollGameIntoWindow() {
+    //    var windowTop = $('body').scrollTop(), windowHeight = $(window).height();
+    //    var gameTop = $('#game').offset().top, gameHeight = $('#game').outerHeight();
+    //    if (gameTop < windowTop || gameTop + gameHeight > windowTop + windowHeight) {
+    //        $('html, body').animate({
+    //            scrollTop: gameTop + (gameHeight - windowHeight) / 2
+    //        });;
+    //    };
 
-    };
-    $(document).ready(function () {
-        scrollGameIntoWindow();;
-        Keys.load();;
-        hash = new Hash();;
-        menu = new Menu();;
-        level = new Level();;
-        stats = new PlayerStats(function () {
-            if (hash.levelname == null) {
-                menu.show();;
-            };
+    //};
+    //$(document).ready(function () {
+    //    scrollGameIntoWindow();;
+    //    Keys.load();;
+    //    hash = new Hash();;
+    //    menu = new Menu();;
+    //    level = new Level();;
+    //    stats = new PlayerStats(function () {
+    //        if (hash.levelname == null) {
+    //            menu.show();;
+    //        };
 
-        });;
-        tick();;
-        setInterval(tick, 1000 / 60);;
+    //    });;
+    //    tick();;
+    //    setInterval(tick, 1000 / 60);;
 
-    });;
-    $('.key.changeable').live('mousedown', function (e) {
-        keyToChange = this.id;;
-        $('.key.changing').removeClass('changing');;
-        $('#' + keyToChange).addClass('changing');;
-        e.preventDefault();;
-        e.stopPropagation();;
+    //});;
+    //$('.key.changeable').live('mousedown', function (e) {
+    //    keyToChange = this.id;;
+    //    $('.key.changing').removeClass('changing');;
+    //    $('#' + keyToChange).addClass('changing');;
+    //    e.preventDefault();;
+    //    e.stopPropagation();;
 
-    });;
-    $(document).keydown(function (e) {
-        if (keyToChange != null) {
-            Keys.keyMap[keyToChange] = e.which;;
-            Keys.save();;
-            $('#' + keyToChange).removeClass('changing');;
-            e.preventDefault();;
-            e.stopPropagation();;
-            keyToChange = null;;
-            return;;
-        };
-        if (!e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
-            menu.keyDown(e);;
-            level.keyDown(e);;
-            if (e.which === ESCAPE_KEY) {
-                hash.setHash(menu.username || level.username, null);;
-            };
-            if (e.which == UP_ARROW || e.which == DOWN_ARROW || e.which == SPACEBAR) {
-                e.preventDefault();;
-                e.stopPropagation();;
-            };
-        };
+    //});;
+    //$(document).keydown(function (e) {
+    //    if (keyToChange != null) {
+    //        Keys.keyMap[keyToChange] = e.which;;
+    //        Keys.save();;
+    //        $('#' + keyToChange).removeClass('changing');;
+    //        e.preventDefault();;
+    //        e.stopPropagation();;
+    //        keyToChange = null;;
+    //        return;;
+    //    };
+    //    if (!e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+    //        menu.keyDown(e);;
+    //        level.keyDown(e);;
+    //        if (e.which === ESCAPE_KEY) {
+    //            hash.setHash(menu.username || level.username, null);;
+    //        };
+    //        if (e.which == UP_ARROW || e.which == DOWN_ARROW || e.which == SPACEBAR) {
+    //            e.preventDefault();;
+    //            e.stopPropagation();;
+    //        };
+    //    };
 
-    });;
-    $(document).keyup(function (e) {
-        if (!e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
-            menu.keyUp(e);;
-            level.keyUp(e);;
-            if (e.which == UP_ARROW || e.which == DOWN_ARROW || e.which == SPACEBAR) {
-                e.preventDefault();;
-                e.stopPropagation();;
-            };
-        };
+    //});;
+    //$(document).keyup(function (e) {
+    //    if (!e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+    //        menu.keyUp(e);;
+    //        level.keyUp(e);;
+    //        if (e.which == UP_ARROW || e.which == DOWN_ARROW || e.which == SPACEBAR) {
+    //            e.preventDefault();;
+    //            e.stopPropagation();;
+    //        };
+    //    };
 
-    });;
-    var flag = true;
-    function tick() {
-        //if (hash.hasChanged()) {
-        //    if (hash.username == null) {
-        //        hash.setHash('rapt', null);;
-        //    } else if (hash.levelname == null) {
-        //        level.game = null;;
-        //        var index = menu.indexOfLevel(level.username, level.levelname);
-        //        if (index !== -1) menu.selectedIndex = index;;
-        //        menu.load(hash.username, function () {
-        //            menu.show();;
+    //});;
+    //var flag = true;
+    //function tick() {
+    //    //if (hash.hasChanged()) {
+    //    //    if (hash.username == null) {
+    //    //        hash.setHash('rapt', null);;
+    //    //    } else if (hash.levelname == null) {
+    //    //        level.game = null;;
+    //    //        var index = menu.indexOfLevel(level.username, level.levelname);
+    //    //        if (index !== -1) menu.selectedIndex = index;;
+    //    //        menu.load(hash.username, function () {
+    //    //            menu.show();;
 
-        //        });;
-        //        menu.show();;
-        //    } else {
-        //        scrollGameIntoWindow();;
-        //        menu.load(hash.username);;
-        //        level.load(hash.username, hash.levelname, function () {
-        //            level.show();;
+    //    //        });;
+    //    //        menu.show();;
+    //    //    } else {
+    //    //        scrollGameIntoWindow();;
+    //    //        menu.load(hash.username);;
+    //    //        level.load(hash.username, hash.levelname, function () {
+    //    //            level.show();;
 
-        //        });;
-        //        level.show();;
-        //    };
-        //};
+    //    //        });;
+    //    //        level.show();;
+    //    //    };
+    //    //};
 
-        if (flag === true) {
-            scrollGameIntoWindow();;
-            menu.load(hash.username);;
-            level.load(hash.username, hash.levelname, function () {
-                level.show();;
+    //    if (flag === true) {
+    //        scrollGameIntoWindow();;
+    //        menu.load(hash.username);;
+    //        level.load(hash.username, hash.levelname, function () {
+    //            level.show();;
 
-            });;
-            level.show();;
-            flag = false;
-        }
-        level.tick();;
+    //        });;
+    //        level.show();;
+    //        flag = false;
+    //    }
+    //    level.tick();;
 
-    };
+    //};
     var COG_ICON_TEETH_COUNT = 16;
     function drawCog(c, x, y, radius, numTeeth, numSpokes, changeBlending, numVertices) {
         var innerRadius = radius * 0.2;
@@ -4328,9 +3943,9 @@
         };
         c.stroke();;
 
-    };; 
-  
-   
+    };;
+
+
     function jsonToTarget(json) {
         return (json['color'] === 1 ? gameState.playerA : gameState.playerB);;
 

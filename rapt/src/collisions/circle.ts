@@ -1,6 +1,7 @@
 // class Circle extends Shape
-class Circle {
-    constructor(public center, public radius) {
+class Circle extends Shape {
+    constructor(public center: Vector, public radius: number) {
+        super();
         // this.center = center;
         // this.radius = radius;
     }

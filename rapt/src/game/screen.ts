@@ -1,9 +1,9 @@
 // abstract class Screen
 
-abstract class Screen {
-    tick(seconds) { }
-    draw(c) { }
-    resize(w, h) { }
-    keyDown(key) { }
-    keyUp(key) { }
+abstract class _Screen {
+    abstract tick(seconds: number): void;
+    abstract draw(c: CanvasRenderingContext2D): void;
+    abstract resize(w, h);
+    abstract keyDown(key);
+    abstract keyUp(key);
 }

@@ -161,7 +161,7 @@ namespace CollisionDetector {
 
 
     // line of sight
-    export function lineOfSightWorld(eye, target, world) {
+    export function lineOfSightWorld(eye, target, world: World) {
         // if the target is too far, we can't see it
         if (target.sub(eye).lengthSquared() > (MAX_LOS_DISTANCE_SQUARED)) {
             return null;

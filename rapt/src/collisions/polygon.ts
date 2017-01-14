@@ -10,12 +10,13 @@
   */
 
 // class Polygon extends Shape
-class Polygon {
-    center;
-    vertices;
-    segments = [];
-    boundingBox;
+class Polygon extends Shape {
+    center: Vector;
+    vertices: Vector[];
+    segments: Segment[] = [];
+    boundingBox: AABB;
     constructor(vertices: Vector[]) {
+        super();
         // center is the first argument, the next arguments are the vertices relative to the center
         //arguments = Array.prototype.slice.call(arguments);
         //this.center = arguments.shift();

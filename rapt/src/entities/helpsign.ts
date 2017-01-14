@@ -9,13 +9,13 @@ class HelpSign extends Enemy {
     // Help signs take in an array of strings, each string in the array is drawn
     // on its own line.
 
-    hitBox;
+    hitBox: AABB;
     textArray;
     text;
     drawText;
     timeSinceStart;
     textWidth;
-    constructor(center, text, width) {
+    constructor(center, text, width = HELP_SIGN_TEXT_WIDTH) {
         // Enemy.prototype.constructor.call(this, ENEMY_HELP_SIGN, 0);
         super(ENEMY_HELP_SIGN, 0);
         this.hitBox = AABB.makeAABB(center, HELP_SIGN_WIDTH, HELP_SIGN_HEIGHT);

@@ -1,11 +1,13 @@
 ///<reference path="../util/vector.ts" /> 
+///<reference path="../collisions/shape.ts" /> 
 ///<reference path="../collisions/polygon.ts" /> 
 
 // class AABB extends Shape
-class AABB {
+class AABB extends Shape {
     lowerLeft: Vector;
     size: Vector;
     constructor(lowerLeft: Vector, upperRight: Vector) {
+        super();
         this.lowerLeft = new Vector(
             Math.min(lowerLeft.x, upperRight.x),
             Math.min(lowerLeft.y, upperRight.y));

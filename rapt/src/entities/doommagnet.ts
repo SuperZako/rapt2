@@ -96,7 +96,7 @@ class DoomMagnet extends RotatingEnemy {
             targetAngle = (playerB.getCenter().sub(center)).atan2();
         } else if (!playerA.isDead() && !playerB.isDead()) {
             var needsFlip = (playerA.getCenter().sub(center).flip().dot(playerB.getCenter().sub(center)) < 0);
-            targetAngle = heading.atan2() - Math.PI * 0.5 + Math.PI * needsFlip;
+            targetAngle = heading.atan2() - Math.PI * 0.5 + Math.PI * /*needsFlip*/(needsFlip ? 1 : 0);
         }
         this.bodySprite.angle = adjustAngleToTarget(oldAngle, targetAngle, MAGNET_MAX_ROTATION * seconds);
 

@@ -198,6 +198,12 @@ class Level {
     width = 800;
     height = 600;
     ratio = 0;
+
+    canvas: HTMLCanvasElement;
+    context: CanvasRenderingContext2D;
+    lastTime;
+    game: Game;
+    json;
     constructor() {
         this.username = null;
         this.levelname = null;
@@ -216,7 +222,7 @@ class Level {
 
     tick() {
         var currentTime = new Date();
-        var seconds = (currentTime - this.lastTime) / 1000;
+        var seconds = (currentTime.getTime() - this.lastTime) / 1000;
         this.lastTime = currentTime;
 
         // Retina support
@@ -318,53 +324,57 @@ class Level {
 ////////////////////////////////////////////////////////////////////////////////
 // class Hash
 ////////////////////////////////////////////////////////////////////////////////
+class Hash {
+    username = null;
+    levelname = null;
+    hash = null;
+    prevHash = null;
+    constructor() {
+        //this.username = null;
+        //this.levelname = null;
+        //this.hash = null;
+        //this.prevHash = null;
+    }
 
-function Hash() {
-    this.username = null;
-    this.levelname = null;
-    this.hash = null;
-    this.prevHash = null;
-}
+    hasChanged() {
+        if (this.hash != location.hash) {
+            this.prevHash = this.hash;
+            this.hash = location.hash;
 
-Hash.prototype.hasChanged = function () {
-    if (this.hash != location.hash) {
-        this.prevHash = this.hash;
-        this.hash = location.hash;
+            var levelMatches = /^#\/?([^\/]+)\/([^\/]+)\/?$/.exec(this.hash);
+            var userMatches = /^#\/?([^\/]+)\/?$/.exec(this.hash);
+            if (levelMatches != null) {
+                this.username = levelMatches[1];
+                this.levelname = levelMatches[2];
+            } else if (userMatches != null) {
+                this.username = userMatches[1];
+                this.levelname = null;
+            } else {
+                this.username = null;
+                this.levelname = null;
+            }
 
-        var levelMatches = /^#\/?([^\/]+)\/([^\/]+)\/?$/.exec(this.hash);
-        var userMatches = /^#\/?([^\/]+)\/?$/.exec(this.hash);
-        if (levelMatches != null) {
-            this.username = levelMatches[1];
-            this.levelname = levelMatches[2];
-        } else if (userMatches != null) {
-            this.username = userMatches[1];
-            this.levelname = null;
-        } else {
-            this.username = null;
-            this.levelname = null;
+            return true;
         }
-
-        return true;
+        return false;
     }
-    return false;
-};
+    setHash(username, levelname) {
+        var newHash = '#/' + username + '/' + (levelname ? levelname + '/' : '');
 
-Hash.prototype.setHash = function (username, levelname) {
-    var newHash = '#/' + username + '/' + (levelname ? levelname + '/' : '');
-
-    if (this.prevHash === newHash) {
-        // if we were on page A, we are now on page B, and we want to go back to page A, use the browser's back button instead
-        // this is so a game session doesn't add tons of level => menu => level => menu stuff to the history
-        history.back();
-    } else {
-        this.username = username;
-        this.levelname = levelname;
-        location.hash = newHash;
+        if (this.prevHash === newHash) {
+            // if we were on page A, we are now on page B, and we want to go back to page A, use the browser's back button instead
+            // this is so a game session doesn't add tons of level => menu => level => menu stuff to the history
+            history.back();
+        } else {
+            this.username = username;
+            this.levelname = levelname;
+            location.hash = newHash;
+        }
     }
-};
 
-Hash.getMenuHash = function (username) { return '#/' + username + '/'; };
-Hash.getLevelHash = function (username, levelname) { return '#/' + username + '/' + levelname + '/'; };
+    static getMenuHash(username) { return '#/' + username + '/'; };
+    static getLevelHash(username, levelname) { return '#/' + username + '/' + levelname + '/'; }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // module Main
@@ -372,8 +382,8 @@ Hash.getLevelHash = function (username, levelname) { return '#/' + username + '/
 
 var stats = null;
 var hash = null;
-var menu = null;
-var level = null;
+var menu: Menu = null;
+var level: Level = null;
 var keyToChange = null;
 
 // scroll the game to the center of the window if it lies partially or completely off screen

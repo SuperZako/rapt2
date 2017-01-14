@@ -1,6 +1,6 @@
 // class Sprite
 class Sprite {
-    flip = 0;
+    flip = false;// 0;
     angle = 0;
     offsetBeforeRotation = new Vector(0, 0);
     offsetAfterRotation = new Vector(0, 0);
@@ -57,7 +57,9 @@ class Sprite {
     draw(c) {
         c.save();
         c.translate(this.offsetBeforeRotation.x, this.offsetBeforeRotation.y);
-        if (this.flip) { c.scale(-1, 1); }
+        if (this.flip) {
+            c.scale(-1, 1);
+        }
         c.rotate(this.angle);
         c.translate(this.offsetAfterRotation.x, this.offsetAfterRotation.y);
 

@@ -89,10 +89,10 @@ class Enemy extends Entity {
         return EDGE_ENEMIES;
     }
 
-    getElasticity() { return this.elasticity; };
-    getType() { return this.type; };
-    getTarget() { return -1; };
-    setTarget(player) { };
+    getElasticity() { return this.elasticity; }
+    getType() { return this.type; }
+    getTarget() { /*return -1;*/return false; }
+    setTarget(player) { }
     onDeath() { };
     canCollide() { return true; };
     avoidsSpawn() { return false; };
@@ -128,7 +128,7 @@ class Enemy extends Entity {
     reactToWorld(contact) { };
 
     // Enemy's reaction to a collision with a Player, by default kills the Player
-    reactToPlayer(player) {
+    reactToPlayer(player: Player) {
         player.setDead(true);
     }
 

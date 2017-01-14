@@ -60,7 +60,7 @@ class Headache extends HoveringEnemy {
     isAttached = false;
     isTracking = false;
     restingOffset = new Vector(0, -10);
-    chains = [];
+    chains: HeadacheChain[] = [];
     constructor(center, public target) {
         // HoveringEnemy.prototype.constructor.call(this, ENEMY_HEADACHE, center, HEADACHE_RADIUS, HEADACHE_ELASTICITY);
         super(ENEMY_HEADACHE, center, HEADACHE_RADIUS, HEADACHE_ELASTICITY);

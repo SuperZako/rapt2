@@ -35,7 +35,7 @@ class Laser extends FreefallEnemy {
         }
     }
 
-    draw(c) {
+    draw(c: CanvasRenderingContext2D) {
         var heading = this.velocity.unit().mul(LASER_RADIUS);
         var segment = new Segment(this.getCenter().sub(heading), this.getCenter().add(heading));
         c.lineWidth = .07;

@@ -23,10 +23,10 @@ class Entity {
     }
 
     getCenter() { return this.getShape().getCenter(); }
-    setCenter(vec) { this.getShape().moveTo(vec); }
+    setCenter(vec: Vector) { this.getShape().moveTo(vec); }
 
     getColor() { throw 'Entity.getColor() unimplemented'; }
-    getShape() { throw 'Entity.getShape() unimplemented'; }
+    getShape(): Shape { /*throw 'Entity.getShape() unimplemented';*/return null; }
 
     // getCenter() { return this.getShape().getCenter(); }
     // setCenter(center) { this.getShape().moveTo(center) }
@@ -38,7 +38,7 @@ class Entity {
     }
 
     tick(seconds) { throw 'Entity.tick() unimplemented'; }
-    draw(c) { throw 'Entity.draw() unimplemented'; }
+    draw(c: CanvasRenderingContext2D) { throw 'Entity.draw() unimplemented'; }
 
     onDeath() { }
     onRespawn() { }

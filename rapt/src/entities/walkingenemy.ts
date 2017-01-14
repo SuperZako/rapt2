@@ -4,7 +4,7 @@
 //WalkingEnemy.subclasses(Enemy);
 class WalkingEnemy extends Enemy {
     hitCircle: Circle;
-    constructor(type, center, radius, elasticity) {
+    constructor(type, center: Vector, radius, elasticity) {
         // Enemy.prototype.constructor.call(this, type, elasticity);
         super(type, elasticity);
         this.hitCircle = new Circle(center, radius);
@@ -14,7 +14,7 @@ class WalkingEnemy extends Enemy {
         return this.hitCircle;
     }
 
-    move(seconds) {
+    move(seconds: number) {
         return this.velocity.mul(seconds);
     }
 }

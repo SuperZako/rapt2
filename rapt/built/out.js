@@ -78,6 +78,16 @@ var Vector = (function () {
     ;
     return Vector;
 }());
+///<reference path="../util/vector.ts" /> 
+// enum ShapeType
+var SHAPE_CIRCLE = 0;
+var SHAPE_AABB = 1;
+var SHAPE_POLYGON = 2;
+var Shape = (function () {
+    function Shape() {
+    }
+    return Shape;
+}());
 /**
   *  For the polygon class, the segments and the bounding box are all relative to the center of the polygon.
   *  That is, when the polygon moves, the center is the only thing that changes.  This is to prevent
@@ -89,22 +99,25 @@ var Vector = (function () {
   *  happen if you don't do that.
   */
 // class Polygon extends Shape
-var Polygon = (function () {
+var Polygon = (function (_super) {
+    __extends(Polygon, _super);
     function Polygon(vertices) {
-        this.segments = [];
+        var _this = _super.call(this) || this;
+        _this.segments = [];
         // center is the first argument, the next arguments are the vertices relative to the center
         //arguments = Array.prototype.slice.call(arguments);
         //this.center = arguments.shift();
         //this.vertices = arguments;
         vertices = Array.prototype.slice.call(vertices);
-        this.center = vertices.shift();
-        this.vertices = vertices;
+        _this.center = vertices.shift();
+        _this.vertices = vertices;
         // this.segments = [];
-        for (var i = 0; i < this.vertices.length; i++) {
-            this.segments.push(new Segment(this.vertices[i], this.vertices[(i + 1) % this.vertices.length]));
+        for (var i = 0; i < _this.vertices.length; i++) {
+            _this.segments.push(new Segment(_this.vertices[i], _this.vertices[(i + 1) % _this.vertices.length]));
         }
-        this.boundingBox = new AABB(this.vertices[0], this.vertices[0]);
-        this.initializeBounds();
+        _this.boundingBox = new AABB(_this.vertices[0], _this.vertices[0]);
+        _this.initializeBounds();
+        return _this;
     }
     Polygon.prototype.copy = function () {
         var polygon = new Polygon([this.center, this.vertices[0]]);
@@ -152,14 +165,18 @@ var Polygon = (function () {
         c.stroke();
     };
     return Polygon;
-}());
+}(Shape));
 ///<reference path="../util/vector.ts" /> 
+///<reference path="../collisions/shape.ts" /> 
 ///<reference path="../collisions/polygon.ts" /> 
 // class AABB extends Shape
-var AABB = (function () {
+var AABB = (function (_super) {
+    __extends(AABB, _super);
     function AABB(lowerLeft, upperRight) {
-        this.lowerLeft = new Vector(Math.min(lowerLeft.x, upperRight.x), Math.min(lowerLeft.y, upperRight.y));
-        this.size = new Vector(Math.max(lowerLeft.x, upperRight.x), Math.max(lowerLeft.y, upperRight.y)).sub(this.lowerLeft);
+        var _this = _super.call(this) || this;
+        _this.lowerLeft = new Vector(Math.min(lowerLeft.x, upperRight.x), Math.min(lowerLeft.y, upperRight.y));
+        _this.size = new Vector(Math.max(lowerLeft.x, upperRight.x), Math.max(lowerLeft.y, upperRight.y)).sub(_this.lowerLeft);
+        return _this;
     }
     AABB.makeAABB = function (center, width, height) {
         var halfSize = new Vector(width * 0.5, height * 0.5);
@@ -225,12 +242,15 @@ var AABB = (function () {
         c.strokeRect(this.lowerLeft.x, this.lowerLeft.y, this.size.x, this.size.y);
     };
     return AABB;
-}());
+}(Shape));
 // class Circle extends Shape
-var Circle = (function () {
+var Circle = (function (_super) {
+    __extends(Circle, _super);
     function Circle(center, radius) {
-        this.center = center;
-        this.radius = radius;
+        var _this = _super.call(this) || this;
+        _this.center = center;
+        _this.radius = radius;
+        return _this;
         // this.center = center;
         // this.radius = radius;
     }
@@ -263,7 +283,7 @@ var Circle = (function () {
         c.stroke();
     };
     return Circle;
-}());
+}(Shape));
 // porting notes:
 //
 // - a prefix of "ref_" on the variable name means it was a non-const reference in C++
@@ -1167,10 +1187,6 @@ var Segment = (function () {
     };
     return Segment;
 }());
-// enum ShapeType
-var SHAPE_CIRCLE = 0;
-var SHAPE_AABB = 1;
-var SHAPE_POLYGON = 2;
 ///<reference path="../util/vector.ts" /> 
 // class Entity
 var Entity = (function () {
@@ -1196,7 +1212,7 @@ var Entity = (function () {
     Entity.prototype.getCenter = function () { return this.getShape().getCenter(); };
     Entity.prototype.setCenter = function (vec) { this.getShape().moveTo(vec); };
     Entity.prototype.getColor = function () { throw 'Entity.getColor() unimplemented'; };
-    Entity.prototype.getShape = function () { throw 'Entity.getShape() unimplemented'; };
+    Entity.prototype.getShape = function () { /*throw 'Entity.getShape() unimplemented';*/ return null; };
     // getCenter() { return this.getShape().getCenter(); }
     // setCenter(center) { this.getShape().moveTo(center) }
     Entity.prototype.isOnFloor = function () {
@@ -1295,13 +1311,9 @@ var Enemy = (function (_super) {
         return EDGE_ENEMIES;
     };
     Enemy.prototype.getElasticity = function () { return this.elasticity; };
-    ;
     Enemy.prototype.getType = function () { return this.type; };
-    ;
-    Enemy.prototype.getTarget = function () { return -1; };
-    ;
+    Enemy.prototype.getTarget = function () { /*return -1;*/ return false; };
     Enemy.prototype.setTarget = function (player) { };
-    ;
     Enemy.prototype.onDeath = function () { };
     ;
     Enemy.prototype.canCollide = function () { return true; };
@@ -1585,8 +1597,9 @@ var Rocket = (function (_super) {
         var _this = 
         //RotatingEnemy.prototype.constructor.call(this, type, center, ROCKET_RADIUS, heading, ROCKET_ELASTICITY);
         _super.call(this, type, center, ROCKET_RADIUS, heading, ROCKET_ELASTICITY) || this;
-        _this.sprites = [new Sprite(), new Sprite];
         _this.target = target;
+        _this.sprites = [new Sprite(), new Sprite];
+        // this.target = target;
         _this.maxRotation = maxRotation;
         _this.timeUntilFree = ROCKET_HEADING_CONSTRAINT_TIME;
         _this.timeUntilNextParticle = 0;
@@ -1883,7 +1896,7 @@ var CorrosionCloud = (function (_super) {
         var isRed = (this.target === gameState.playerA) ? 0.4 : 0;
         var isBlue = (this.target === gameState.playerB) ? 0.3 : 0;
         this.smoothedVelocity = this.smoothedVelocity.mul(0.95).add(this.velocity.mul(0.05));
-        Particle.get().position(center).velocity(this.smoothedVelocity.sub(new Vector(0.1, 0.1)), this.smoothedVelocity.add(new Vector(0.1, 0.1))).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).expand(1, 1.2).color(0.2 + isRed, 0.2, 0.2 + isBlue, 1).mixColor(0.1 + isRed, 0.1, 0.1 + isBlue, 1).circle().gravity(-0.4, 0);
+        Particle.get().position(center).velocity(this.smoothedVelocity.sub(new Vector(0.1, 0.1)) /*, this.smoothedVelocity.add(new Vector(0.1, 0.1))*/).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).expand(1, 1.2).color(0.2 + isRed, 0.2, 0.2 + isBlue, 1).mixColor(0.1 + isRed, 0.1, 0.1 + isBlue, 1).circle().gravity(-0.4, 0);
     };
     CorrosionCloud.prototype.getTarget = function () {
         return this.target === gameState.playerB;
@@ -1984,7 +1997,7 @@ var DoomMagnet = (function (_super) {
         }
         else if (!playerA.isDead() && !playerB.isDead()) {
             var needsFlip = (playerA.getCenter().sub(center).flip().dot(playerB.getCenter().sub(center)) < 0);
-            targetAngle = heading.atan2() - Math.PI * 0.5 + Math.PI * needsFlip;
+            targetAngle = heading.atan2() - Math.PI * 0.5 + Math.PI * (needsFlip ? 1 : 0);
         }
         this.bodySprite.angle = adjustAngleToTarget(oldAngle, targetAngle, MAGNET_MAX_ROTATION * seconds);
         return delta;
@@ -2223,7 +2236,7 @@ var Grenadier = (function (_super) {
         return _this;
     }
     Grenadier.prototype.getTarget = function () {
-        return this.target === gameState.GetPlayerB();
+        return this.target === gameState.getPlayerB();
     };
     Grenadier.prototype.setTarget = function (player) {
         this.target = player;
@@ -2463,6 +2476,7 @@ var HELP_SIGN_HEIGHT = 0.76;
 var HelpSign = (function (_super) {
     __extends(HelpSign, _super);
     function HelpSign(center, text, width) {
+        if (width === void 0) { width = HELP_SIGN_TEXT_WIDTH; }
         var _this = 
         // Enemy.prototype.constructor.call(this, ENEMY_HELP_SIGN, 0);
         _super.call(this, ENEMY_HELP_SIGN, 0) || this;
@@ -2606,6 +2620,7 @@ var Hunter = (function (_super) {
         _this.sprites[HUNTER_CLAW1].setParent(_this.sprites[HUNTER_BODY]);
         _this.sprites[HUNTER_CLAW2].setParent(_this.sprites[HUNTER_BODY]);
         _this.sprites[HUNTER_CLAW2].flip = true;
+        // this.sprites[HUNTER_CLAW2].flip = 1;
         _this.sprites[HUNTER_BODY].offsetAfterRotation = new Vector(0, -0.2);
         return _this;
     }
@@ -2618,7 +2633,8 @@ var Hunter = (function (_super) {
         if (target.isDead())
             return false;
         var inSight = distanceSquared < (HUNTER_CHASE_RANGE * HUNTER_CHASE_RANGE);
-        inSight &= !CollisionDetector.lineOfSightWorld(this.getCenter(), target.getCenter(), gameState.world);
+        //inSight &= !CollisionDetector.lineOfSightWorld(this.getCenter(), target.getCenter(), gameState.world);
+        inSight = inSight && !CollisionDetector.lineOfSightWorld(this.getCenter(), target.getCenter(), gameState.world);
         return inSight;
     };
     Hunter.prototype.move = function (seconds) {
@@ -2792,7 +2808,7 @@ var JetStream = (function (_super) {
         for (var side = -1; side <= 1; side += 2) {
             for (var i = 0; i < NUM_BARRELS; i++) {
                 var theta = i * (2 * Math.PI / NUM_BARRELS) - side * angle;
-                var reload = (this.reloadAnimation - i * side) / NUM_BARRELS + (side === 1) * 0.5;
+                var reload = (this.reloadAnimation - i * side) / NUM_BARRELS + (side === 1 ? 1 : 0) * 0.5;
                 // adjust for even NUM_BARRELS
                 if (side == 1 && !(NUM_BARRELS & 1)) {
                     theta += Math.PI / NUM_BARRELS;
@@ -2864,8 +2880,6 @@ var MultiGun = (function (_super) {
         var _this = 
         // SpawningEnemy.prototype.constructor.call(this, ENEMY_MULTI_GUN, center, MULTI_GUN_WIDTH, MULTI_GUN_HEIGHT, 0, MULTI_GUN_SHOOT_FREQ, 0);
         _super.call(this, ENEMY_MULTI_GUN, center, MULTI_GUN_WIDTH, MULTI_GUN_HEIGHT, 0, MULTI_GUN_SHOOT_FREQ, 0) || this;
-        _this.redGun = null;
-        _this.blueGun = null;
         _this.gunFired = new Array(4);
         _this.gunPositions = new Array(4);
         //this.redGun = null;
@@ -3101,16 +3115,21 @@ var ParticleInstance = (function () {
         }
     };
     // all of these functions support chaining to fix constructor with 200 arguments
-    ParticleInstance.prototype.bounces = function (min, max) { this.m_bounces = Math.round(randOrTakeFirst(min, max)); return this; };
-    ;
+    ParticleInstance.prototype.bounces = function (min, max) {
+        this.m_bounces = Math.round(randOrTakeFirst(min, max));
+        return this;
+    };
     ParticleInstance.prototype.circle = function () { this.m_type = PARTICLE_CIRCLE; return this; };
     ;
     ParticleInstance.prototype.triangle = function () { this.m_type = PARTICLE_TRIANGLE; return this; };
     ;
     ParticleInstance.prototype.line = function () { this.m_type = PARTICLE_LINE; return this; };
     ;
-    ParticleInstance.prototype.custom = function (drawFunc) { this.m_type = PARTICLE_CUSTOM; this.m_drawFunc = drawFunc; return this; };
-    ;
+    ParticleInstance.prototype.custom = function (drawFunc) {
+        this.m_type = PARTICLE_CUSTOM;
+        this.m_drawFunc = drawFunc;
+        return this;
+    };
     ParticleInstance.prototype.color = function (r, g, b, a) {
         this.m_red = r;
         this.m_green = g;
@@ -3126,19 +3145,32 @@ var ParticleInstance = (function () {
         this.m_alpha = lerp(this.m_alpha, a, percent);
         return this;
     };
-    ParticleInstance.prototype.radius = function (min, max) { this.m_radius = randOrTakeFirst(min, max); return this; };
-    ;
-    ParticleInstance.prototype.gravity = function (min, max) { this.m_gravity = randOrTakeFirst(min, max); return this; };
-    ;
-    ParticleInstance.prototype.elasticity = function (min, max) { this.m_elasticity = randOrTakeFirst(min, max); return this; };
-    ;
-    ParticleInstance.prototype.decay = function (min, max) { this.m_decay = randOrTakeFirst(min, max); return this; };
-    ;
+    ParticleInstance.prototype.radius = function (min, max) {
+        this.m_radius = randOrTakeFirst(min, max);
+        return this;
+    };
+    ParticleInstance.prototype.gravity = function (min, max) {
+        this.m_gravity = randOrTakeFirst(min, max);
+        return this;
+    };
+    ParticleInstance.prototype.elasticity = function (min, max) {
+        this.m_elasticity = randOrTakeFirst(min, max);
+        return this;
+    };
+    ParticleInstance.prototype.decay = function (min, max) {
+        this.m_decay = randOrTakeFirst(min, max);
+        return this;
+    };
     ParticleInstance.prototype.expand = function (min, max) { this.m_expand = randOrTakeFirst(min, max); return this; };
     ;
-    ParticleInstance.prototype.angle = function (min, max) { this.m_angle = randOrTakeFirst(min, max); return this; };
-    ;
-    ParticleInstance.prototype.angularVelocity = function (min, max) { this.m_angularVelocity = randOrTakeFirst(min, max); return this; };
+    ParticleInstance.prototype.angle = function (min, max) {
+        this.m_angle = randOrTakeFirst(min, max);
+        return this;
+    };
+    ParticleInstance.prototype.angularVelocity = function (min, max) {
+        this.m_angularVelocity = randOrTakeFirst(min, max);
+        return this;
+    };
     ;
     ParticleInstance.prototype.position = function (position) { this.m_position = position; return this; };
     ;
@@ -3345,6 +3377,12 @@ var Player = (function (_super) {
         var _this = 
         //Entity.prototype.constructor.call(this);
         _super.call(this) || this;
+        // Player.subclasses(Entity);
+        // class Player extends Entity
+        _this.jumpKey = false;
+        _this.crouchKey = false;
+        _this.leftKey = false;
+        _this.rightKey = false;
         _this.reset(center, color);
         return _this;
     }
@@ -3396,7 +3434,7 @@ var Player = (function (_super) {
     ;
     // returns 0 for red player and 1 for blue player
     Player.prototype.getPlayerIndex = function () {
-        return (this == gameState.playerB);
+        return (this === gameState.playerB);
     };
     Player.prototype.getCrouch = function () {
         return this.crouchKey;
@@ -3534,14 +3572,18 @@ var Player = (function (_super) {
                 this.velocity.x = Math.min(this.velocity.x, PLAYER_MAX_SPEED);
             }
         }
-        if (edgeQuad.edges[EDGE_FLOOR])
+        if (edgeQuad.edges[EDGE_FLOOR]) {
             this.state = PLAYER_STATE_FLOOR;
-        else if (edgeQuad.edges[EDGE_LEFT])
+        }
+        else if (edgeQuad.edges[EDGE_LEFT]) {
             this.state = PLAYER_STATE_LEFT_WALL;
-        else if (edgeQuad.edges[EDGE_RIGHT])
+        }
+        else if (edgeQuad.edges[EDGE_RIGHT]) {
             this.state = PLAYER_STATE_RIGHT_WALL;
-        else
+        }
+        else {
             this.state = PLAYER_STATE_AIR;
+        }
         var ref_closestPointWorld = { ref: null }, ref_closestPointShape = { ref: null };
         var closestPointDistance = CollisionDetector.closestToEntityWorld(this, 0.1, ref_closestPointShape, ref_closestPointWorld, gameState.world);
         if (this.state == PLAYER_STATE_LEFT_WALL || this.state == PLAYER_STATE_RIGHT_WALL) {
@@ -3706,13 +3748,18 @@ var Player = (function (_super) {
         }
         else {
             frame = Keyframe.lerp(runningKeyframes, this.runningFrame);
-            if (this.actualVelocity.x < -0.1)
+            if (this.actualVelocity.x < -0.1) {
                 this.facingRight = false;
-            else if (this.actualVelocity.x > 0.1)
-                this.facingRight = true;
+            }
+            else {
+                if (this.actualVelocity.x > 0.1) {
+                    this.facingRight = true;
+                }
+            }
             slowDownScale = Math.abs(this.actualVelocity.x) / 5;
-            if (slowDownScale > 1)
+            if (slowDownScale > 1) {
                 slowDownScale = 1;
+            }
         }
         for (var i = 0; i < this.sprites.length; i++) {
             this.sprites[i].angle = frame.angles[i] * slowDownScale;
@@ -3730,13 +3777,168 @@ var Player = (function (_super) {
                 this.sprites[PLAYER_TORSO].draw(c);
                 c.lineWidth /= 3;
             }
-            c.fillStyle = (this.getPlayerIndex() == 0) ? 'red' : 'blue';
+            c.fillStyle = (this.getPlayerIndex() === false) ? 'red' : 'blue';
             c.strokeStyle = 'black';
             this.sprites[PLAYER_TORSO].draw(c);
         }
     };
     return Player;
 }(Entity));
+///<reference path="./Enemy.ts" />
+//WalkingEnemy.subclasses(Enemy);
+var WalkingEnemy = (function (_super) {
+    __extends(WalkingEnemy, _super);
+    function WalkingEnemy(type, center, radius, elasticity) {
+        var _this = 
+        // Enemy.prototype.constructor.call(this, type, elasticity);
+        _super.call(this, type, elasticity) || this;
+        _this.hitCircle = new Circle(center, radius);
+        return _this;
+    }
+    WalkingEnemy.prototype.getShape = function () {
+        return this.hitCircle;
+    };
+    WalkingEnemy.prototype.move = function (seconds) {
+        return this.velocity.mul(seconds);
+    };
+    return WalkingEnemy;
+}(Enemy));
+///<reference path="./WalkingEnemy.ts" />
+var LEG_LENGTH = 0.3;
+var POPPER_BODY = 0;
+var POPPER_LEG1_UPPER = 1;
+var POPPER_LEG2_UPPER = 2;
+var POPPER_LEG3_UPPER = 3;
+var POPPER_LEG4_UPPER = 4;
+var POPPER_LEG1_LOWER = 5;
+var POPPER_LEG2_LOWER = 6;
+var POPPER_LEG3_LOWER = 7;
+var POPPER_LEG4_LOWER = 8;
+var POPPER_NUM_SPRITES = 9;
+var popperStandingKeyframe = new Keyframe(0, 0.1).add([0, -80, -80, 80, 80, 100, 100, -100, -100]);
+var popperJumpingKeyframes = [
+    new Keyframe(0, 0.2).add([0, -40, -30, 30, 40, 40, 40, -40, -40]),
+    new Keyframe(0, 0.1).add([0, -80, -80, 80, 80, 100, 100, -100, -100])
+];
+var POPPER_RADIUS = 0.4;
+var POPPER_JUMP_DELAY = 0.5;
+var POPPER_MIN_JUMP_Y = 2.5;
+var POPPER_MAX_JUMP_Y = 6.5;
+var POPPER_ELASTICITY = 0.5;
+var POPPER_ACCEL = -6;
+function createPopperSprites() {
+    var sprites = [];
+    for (var i = 0; i < POPPER_NUM_SPRITES; i++) {
+        sprites.push(new Sprite());
+    }
+    sprites[POPPER_BODY].drawGeometry = function (c) {
+        c.strokeStyle = 'black';
+        c.fillStyle = 'black';
+        c.beginPath();
+        c.moveTo(0.2, -0.2);
+        c.lineTo(-0.2, -0.2);
+        c.lineTo(-0.3, 0);
+        c.lineTo(-0.2, 0.2);
+        c.lineTo(0.2, 0.2);
+        c.lineTo(0.3, 0);
+        c.lineTo(0.2, -0.2);
+        c.moveTo(0.15, -0.15);
+        c.lineTo(-0.15, -0.15);
+        c.lineTo(-0.23, 0);
+        c.lineTo(-0.15, 0.15);
+        c.lineTo(0.15, 0.15);
+        c.lineTo(0.23, 0);
+        c.lineTo(0.15, -0.15);
+        c.stroke();
+        c.beginPath();
+        c.arc(-0.075, 0, 0.04, 0, 2 * Math.PI, false);
+        c.arc(0.075, 0, 0.04, 0, 2 * Math.PI, false);
+        c.fill();
+    };
+    var legDrawGeometry = function (c) {
+        c.strokeStyle = 'black';
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.lineTo(0, -LEG_LENGTH);
+        c.stroke();
+    };
+    for (var i = 0; i < 4; i++) {
+        sprites[POPPER_LEG1_UPPER + i].drawGeometry = legDrawGeometry;
+        sprites[POPPER_LEG1_LOWER + i].drawGeometry = legDrawGeometry;
+        sprites[POPPER_LEG1_UPPER + i].setParent(sprites[POPPER_BODY]);
+        sprites[POPPER_LEG1_LOWER + i].setParent(sprites[POPPER_LEG1_UPPER + i]);
+        sprites[POPPER_LEG1_LOWER + i].offsetBeforeRotation = new Vector(0, -LEG_LENGTH);
+    }
+    sprites[POPPER_LEG1_UPPER].offsetBeforeRotation = new Vector(-0.2, -0.2);
+    sprites[POPPER_LEG2_UPPER].offsetBeforeRotation = new Vector(-0.1, -0.2);
+    sprites[POPPER_LEG3_UPPER].offsetBeforeRotation = new Vector(0.1, -0.2);
+    sprites[POPPER_LEG4_UPPER].offsetBeforeRotation = new Vector(0.2, -0.2);
+    return sprites;
+}
+//Popper.subclasses(WalkingEnemy);
+var Popper = (function (_super) {
+    __extends(Popper, _super);
+    function Popper(center) {
+        var _this = 
+        // WalkingEnemy.prototype.constructor.call(this, ENEMY_POPPER, center, POPPER_RADIUS, POPPER_ELASTICITY);
+        _super.call(this, ENEMY_POPPER, center, POPPER_RADIUS, POPPER_ELASTICITY) || this;
+        _this.onFloor = false;
+        _this.timeToNextJump = POPPER_JUMP_DELAY;
+        _this.onFloor = false;
+        _this.timeToNextJump = POPPER_JUMP_DELAY;
+        _this.sprites = createPopperSprites();
+        return _this;
+    }
+    Popper.prototype.move = function (seconds) {
+        if (this.timeToNextJump <= 0) {
+            // POPPER_MIN_JUMP_Y <= velocity.y < POPPER_MAX_JUMP_Y
+            this.velocity.y = randInRange(POPPER_MIN_JUMP_Y, POPPER_MAX_JUMP_Y);
+            // -(POPPER_MAX_JUMP_Y - POPPER_MIN_JUMP_Y) <= velocity.x <= (POPPER_MAX_JUMP_Y - POPPER_MIN_JUMP_Y)
+            this.velocity.x = (Math.random() > 0.5) ? POPPER_MAX_JUMP_Y - this.velocity.y : -POPPER_MAX_JUMP_Y + this.velocity.y;
+            this.timeToNextJump = POPPER_JUMP_DELAY;
+            this.onFloor = false;
+        }
+        else if (this.onFloor) {
+            this.timeToNextJump = this.timeToNextJump - seconds;
+        }
+        return this.accelerate(new Vector(0, POPPER_ACCEL), seconds);
+    };
+    ;
+    Popper.prototype.reactToWorld = function (contact) {
+        if (contact.normal.y >= .999) {
+            this.velocity.x = 0;
+            this.velocity.y = 0;
+            this.onFloor = true;
+        }
+    };
+    Popper.prototype.afterTick = function (seconds) {
+        var position = this.getCenter();
+        this.sprites[POPPER_BODY].offsetBeforeRotation = position;
+        // unfortunate hax because poppers bounce a little bit because of the way Enemy::Tick() works
+        var ref_shapePoint = { ref: null }, ref_worldPoint = { ref: null };
+        var distance = CollisionDetector.closestToEntityWorld(this, 2 * POPPER_RADIUS, ref_shapePoint, ref_worldPoint, gameState.world);
+        var isOnFloor = (distance < 3 * POPPER_RADIUS && ref_shapePoint.ref.eq(position.add(new Vector(0, -POPPER_RADIUS))) && ref_worldPoint.ref.sub(ref_shapePoint.ref).length() < 0.1);
+        var frame;
+        if (!isOnFloor) {
+            var percent = this.velocity.y * -0.25;
+            percent = (percent < 0) ? 1 / (1 - percent) - 1 : 1 - 1 / (1 + percent);
+            frame = popperJumpingKeyframes[0].lerpWith(popperJumpingKeyframes[1], percent);
+        }
+        else
+            frame = popperStandingKeyframe;
+        this.sprites[POPPER_BODY].offsetAfterRotation = frame.center;
+        for (var i = 0; i < POPPER_NUM_SPRITES; i++) {
+            this.sprites[i].angle = frame.angles[i];
+        }
+    };
+    Popper.prototype.draw = function (c) {
+        this.sprites[POPPER_BODY].draw(c);
+    };
+    Popper.prototype.avoidsSpawn = function () {
+        return true;
+    };
+    return Popper;
+}(WalkingEnemy));
 var RIOT_BULLET_RADIUS = 0.1;
 var RIOT_BULLET_SPEED = 7;
 // RiotBullet.subclasses(FreefallEnemy);
@@ -3778,6 +3980,287 @@ var RiotBullet = (function (_super) {
     };
     return RiotBullet;
 }(FreefallEnemy));
+///<reference path="./SpawningEnemy.ts" />
+var SPIDER_LEG_HEIGHT = 0.5;
+var SPIDER_BODY = 0;
+var SPIDER_LEG1_TOP = 1;
+var SPIDER_LEG2_TOP = 2;
+var SPIDER_LEG3_TOP = 3;
+var SPIDER_LEG4_TOP = 4;
+var SPIDER_LEG5_TOP = 5;
+var SPIDER_LEG6_TOP = 6;
+var SPIDER_LEG7_TOP = 7;
+var SPIDER_LEG8_TOP = 8;
+var SPIDER_LEG1_BOTTOM = 9;
+var SPIDER_LEG2_BOTTOM = 10;
+var SPIDER_LEG3_BOTTOM = 11;
+var SPIDER_LEG4_BOTTOM = 12;
+var SPIDER_LEG5_BOTTOM = 13;
+var SPIDER_LEG6_BOTTOM = 14;
+var SPIDER_LEG7_BOTTOM = 15;
+var SPIDER_LEG8_BOTTOM = 16;
+var SPIDER_NUM_SPRITES = 17;
+var spiderWalkingKeyframes = [
+    new Keyframe().add([0, -10, -20, -10, 10, -10, 10, -10, -20, 20, 10, 70, 20, 70, 20, 20, 10]),
+    new Keyframe().add([0, 10, -10, -20, -10, -20, -10, 10, -10, 20, 20, 10, 70, 10, 70, 20, 20]),
+    new Keyframe().add([0, -10, 10, -10, -20, -10, -20, -10, 10, 70, 20, 20, 10, 20, 10, 70, 20]),
+    new Keyframe().add([0, -20, -10, 10, -10, 10, -10, -20, -10, 10, 70, 20, 20, 20, 20, 10, 70])
+];
+var spiderFallingKeyframes = [
+    new Keyframe().add([0, 7, 3, -1, -5, 5, 1, -3, -7, -14, -6, 2, 10, -10, -2, 6, 14]),
+    new Keyframe().add([0, 30, 10, -30, -20, 30, 40, -10, -35, -50, -90, 40, 20, -50, -40, 70, 30])
+];
+var SPIDER_WIDTH = 0.9;
+var SPIDER_HEIGHT = 0.3;
+var SPIDER_SHOOT_FREQ = 2.0;
+var SPIDER_SPEED = 1.0;
+var SPIDER_ELASTICITY = 1.0;
+var SPIDER_FLOOR_DIST = 1.0;
+// Spiders can only see this many cells high
+var SPIDER_SIGHT_HEIGHT = 10;
+function drawSpiderBody(c) {
+    var innerRadius = 0.5;
+    c.beginPath();
+    for (var i = 0; i <= 21; i++) {
+        var angle = (0.25 + 0.5 * i / 21) * Math.PI;
+        var radius = 0.6 + 0.05 * (i & 2);
+        c.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius - 0.5);
+    }
+    for (var i = 21; i >= 0; i--) {
+        var angle = (0.25 + 0.5 * i / 21) * Math.PI;
+        c.lineTo(Math.cos(angle) * innerRadius, Math.sin(angle) * innerRadius - 0.5);
+    }
+    c.fill();
+}
+function drawSpiderLeg(c) {
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.lineTo(0, -SPIDER_LEG_HEIGHT);
+    c.stroke();
+}
+function createSpiderSprites() {
+    var sprites = [];
+    for (var i = 0; i < SPIDER_NUM_SPRITES; i++) {
+        sprites.push(new Sprite());
+        sprites[i].drawGeometry = (i == 0) ? drawSpiderBody : drawSpiderLeg;
+    }
+    for (var i = SPIDER_LEG1_TOP; i <= SPIDER_LEG8_TOP; i++) {
+        sprites[i].setParent(sprites[SPIDER_BODY]);
+    }
+    for (var i = SPIDER_LEG1_BOTTOM; i <= SPIDER_LEG8_BOTTOM; i++) {
+        sprites[i].setParent(sprites[i - SPIDER_LEG1_BOTTOM + SPIDER_LEG1_TOP]);
+    }
+    sprites[SPIDER_LEG1_TOP].offsetBeforeRotation = new Vector(SPIDER_WIDTH * 0.35, 0);
+    sprites[SPIDER_LEG2_TOP].offsetBeforeRotation = new Vector(SPIDER_WIDTH * 0.15, 0);
+    sprites[SPIDER_LEG3_TOP].offsetBeforeRotation = new Vector(SPIDER_WIDTH * -0.05, 0);
+    sprites[SPIDER_LEG4_TOP].offsetBeforeRotation = new Vector(SPIDER_WIDTH * -0.25, 0);
+    sprites[SPIDER_LEG5_TOP].offsetBeforeRotation = new Vector(SPIDER_WIDTH * 0.25, 0);
+    sprites[SPIDER_LEG6_TOP].offsetBeforeRotation = new Vector(SPIDER_WIDTH * 0.05, 0);
+    sprites[SPIDER_LEG7_TOP].offsetBeforeRotation = new Vector(SPIDER_WIDTH * -0.15, 0);
+    sprites[SPIDER_LEG8_TOP].offsetBeforeRotation = new Vector(SPIDER_WIDTH * -0.35, 0);
+    for (var i = SPIDER_LEG1_BOTTOM; i <= SPIDER_LEG8_BOTTOM; i++)
+        sprites[i].offsetBeforeRotation = new Vector(0, -SPIDER_LEG_HEIGHT);
+    return sprites;
+}
+//RocketSpider.subclasses(SpawningEnemy);
+var RocketSpider = (function (_super) {
+    __extends(RocketSpider, _super);
+    function RocketSpider(center, angle) {
+        var _this = 
+        // SpawningEnemy.prototype.constructor.call(this, ENEMY_ROCKET_SPIDER, center.add(new Vector(0, 0.81 - SPIDER_LEGS_RADIUS + SPIDER_HEIGHT * 0.5)), SPIDER_WIDTH, SPIDER_HEIGHT, SPIDER_ELASTICITY, SPIDER_SHOOT_FREQ, 0);
+        _super.call(this, ENEMY_ROCKET_SPIDER, center.add(new Vector(0, 0.81 - SPIDER_LEGS_RADIUS + SPIDER_HEIGHT * 0.5)), SPIDER_WIDTH, SPIDER_HEIGHT, SPIDER_ELASTICITY, SPIDER_SHOOT_FREQ, 0) || this;
+        _this.leftChasesA = true;
+        _this.leftSpawnPoint = new Vector(0, 0);
+        _this.rightSpawnPoint = new Vector(0, 0);
+        _this.timeSinceStart = 0;
+        _this.animationDelay = 0;
+        _this.animationIsOnFloor = false; //0;
+        // this.leftChasesA = true;
+        _this.leftSpawnPoint = new Vector(0, 0);
+        _this.rightSpawnPoint = new Vector(0, 0);
+        _this.timeSinceStart = 0;
+        _this.legs = new RocketSpiderLegs(center, angle, _this);
+        gameState.addEnemy(_this.legs, _this.legs.getShape().getCenter());
+        _this.sprites = createSpiderSprites();
+        // spiders periodically "twitch" when their animation resets because the
+        // collision detection doesn't see them as on the floor, so only change
+        // to a falling animation if we haven't been on the floor for a few ticks
+        _this.animationDelay = 0;
+        _this.animationIsOnFloor = false; //0;
+        return _this;
+    }
+    RocketSpider.prototype.canCollide = function () { return false; };
+    // Returns true iff the target is in the spider's sight line
+    RocketSpider.prototype.playerInSight = function (target) {
+        if (target.isDead())
+            return false;
+        var relativePos = target.getCenter().sub(this.getCenter());
+        var relativeAngle = relativePos.atan2();
+        // Player needs to be within a certain height range, in the line of sight, and between the angle of pi/4 and 3pi/4
+        if (relativePos.y < SPIDER_SIGHT_HEIGHT && (relativeAngle > Math.PI * .25) && (relativeAngle < Math.PI * .75)) {
+            return (!CollisionDetector.lineOfSightWorld(this.getCenter(), target.getCenter(), gameState.world));
+        }
+        return false;
+    };
+    RocketSpider.prototype.spawnRocket = function (loc, target, angle) {
+        gameState.addEnemy(new Rocket(loc, target, angle), this.getCenter());
+    };
+    // When either Player is above the cone of sight extending above the spider, shoot
+    RocketSpider.prototype.spawn = function () {
+        var center = this.getCenter();
+        this.leftSpawnPoint = new Vector(center.x - SPIDER_WIDTH * .4, center.y + SPIDER_HEIGHT * .4);
+        this.rightSpawnPoint = new Vector(center.x + SPIDER_WIDTH * .4, center.y + SPIDER_HEIGHT * .4);
+        if (this.playerInSight(gameState.playerA)) {
+            if (this.playerInSight(gameState.playerB)) {
+                this.spawnRocket(this.leftChasesA ? this.leftSpawnPoint : this.rightSpawnPoint, gameState.playerA, this.leftChasesA ? Math.PI * .75 : Math.PI * .25);
+                this.spawnRocket(this.leftChasesA ? this.rightSpawnPoint : this.leftSpawnPoint, gameState.playerB, this.leftChasesA ? Math.PI * .25 : Math.PI * .75);
+                this.leftChasesA = !this.leftChasesA;
+                return true;
+            }
+            else {
+                this.spawnRocket(this.leftSpawnPoint, gameState.playerA, Math.PI * .75);
+                this.spawnRocket(this.rightSpawnPoint, gameState.playerA, Math.PI * .25);
+                return true;
+            }
+        }
+        else if (this.playerInSight(gameState.playerB)) {
+            this.spawnRocket(this.leftSpawnPoint, gameState.playerB, Math.PI * .75);
+            this.spawnRocket(this.rightSpawnPoint, gameState.playerB, Math.PI * .25);
+            return true;
+        }
+        return false;
+    };
+    // Rocket spiders hover slowly over the floor, bouncing off walls with elasticity 1
+    RocketSpider.prototype.move = function (seconds) {
+        // The height difference is h = player_height - SPIDER_LEGS_RADIUS + SPIDER_HEIGHT / 2
+        return this.legs.getCenter().sub(this.getCenter()).add(new Vector(0, 0.81 - SPIDER_LEGS_RADIUS + SPIDER_HEIGHT * 0.5));
+    };
+    RocketSpider.prototype.afterTick = function (seconds) {
+        var position = this.getCenter();
+        this.sprites[SPIDER_BODY].offsetBeforeRotation = position;
+        this.sprites[SPIDER_BODY].flip = (this.legs.velocity.x > 0);
+        // work out whether the spider is on the floor (walking animation) or in the air (falling animation)
+        var isOnFloor = this.legs.isOnFloor();
+        if (isOnFloor != this.animationIsOnFloor) {
+            // wait 1 tick before changing the animation to avoid "twitching"
+            if (++this.animationDelay > 1) {
+                this.animationIsOnFloor = isOnFloor;
+                this.animationDelay = 0;
+            }
+        }
+        else {
+            this.animationDelay = 0;
+        }
+        this.timeSinceStart += seconds * 0.5;
+        var frame;
+        if (!this.animationIsOnFloor) {
+            var percent = this.legs.velocity.y * -0.25;
+            percent = (percent < 0.01) ? 0 : 1 - 1 / (1 + percent);
+            frame = spiderFallingKeyframes[0].lerpWith(spiderFallingKeyframes[1], percent);
+        }
+        else
+            frame = Keyframe.lerp(spiderWalkingKeyframes, 10 * this.timeSinceStart);
+        for (var i = 0; i < SPIDER_NUM_SPRITES; i++) {
+            this.sprites[i].angle = frame.angles[i];
+        }
+    };
+    // The body of the Spider kills the player
+    RocketSpider.prototype.reactToPlayer = function (player) {
+        player.setDead(true);
+    };
+    RocketSpider.prototype.onDeath = function () {
+        // don't add this death to the stats because it is added in the legs OnDeath() method
+        // add something that looks like the body
+        Particle.get().position(this.getCenter()).bounces(1).gravity(5).decay(0.1).custom(drawSpiderBody).color(0, 0, 0, 1).angle(0).angularVelocity(randInRange(-Math.PI, Math.PI));
+    };
+    RocketSpider.prototype.draw = function (c) {
+        c.strokeStyle = 'black';
+        c.fillStyle = 'black';
+        this.sprites[SPIDER_BODY].draw(c);
+    };
+    return RocketSpider;
+}(SpawningEnemy));
+///<reference path="./WalkingEnemy.ts" />
+var SPIDER_LEGS_RADIUS = .45;
+var SPIDER_LEGS_WEAK_SPOT_RADIUS = .2;
+var SPIDER_LEGS_ELASTICITY = 1.0;
+var SPIDER_LEGS_FLOOR_ELASTICITY = 0.1;
+//RocketSpiderLegs.subclasses(WalkingEnemy);
+var RocketSpiderLegs = (function (_super) {
+    __extends(RocketSpiderLegs, _super);
+    function RocketSpiderLegs(center, angle, body) {
+        var _this = 
+        // WalkingEnemy.prototype.constructor.call(this, -1, center, SPIDER_LEGS_RADIUS, SPIDER_LEGS_ELASTICITY);
+        _super.call(this, -1, center, SPIDER_LEGS_RADIUS, SPIDER_LEGS_ELASTICITY) || this;
+        _this.body = body;
+        // this.body = body;
+        _this.weakSpot = new Circle(center, SPIDER_LEGS_WEAK_SPOT_RADIUS);
+        if (angle <= Math.PI * 0.5 || angle > Math.PI * 0.6666666) {
+            _this.velocity = new Vector(SPIDER_SPEED, 0);
+        }
+        else {
+            _this.velocity = new Vector(-SPIDER_SPEED, 0);
+        }
+        return _this;
+    }
+    // Returns true iff the Spider and player are on the same level floor, less than 1 cell horizontal distance away,
+    // and the spider is moving towards the player
+    RocketSpiderLegs.prototype.playerWillCollide = function (player) {
+        if (player.isDead())
+            return false;
+        var toReturn = Math.abs(player.getShape().getAabb().getBottom() - this.hitCircle.getAabb().getBottom()) < .01;
+        var xRelative = player.getCenter().x - this.getCenter().x;
+        toReturn = toReturn && (Math.abs(xRelative) < 1) && (this.velocity.x * xRelative > -0.01);
+        return toReturn;
+    };
+    // Walks in a straight line, but doesn't walk into the player
+    RocketSpiderLegs.prototype.move = function (seconds) {
+        if (this.isOnFloor()) {
+            if (this.playerWillCollide(gameState.playerA) || this.playerWillCollide(gameState.playerB)) {
+                this.velocity.x *= -1;
+            }
+            return this.velocity.mul(seconds);
+        }
+        else {
+            return this.accelerate(new Vector(0, FREEFALL_ACCEL), seconds);
+        }
+    };
+    // Acts like it has elasticity of SPIDER_FLOOR_ELASTICITY on floors, and maintains constant horizontal speed
+    RocketSpiderLegs.prototype.reactToWorld = function (contact) {
+        if (Edge.getOrientation(contact.normal) === EDGE_FLOOR) {
+            var perpendicular = this.velocity.projectOntoAUnitVector(contact.normal);
+            var parallel = this.velocity.sub(perpendicular);
+            this.velocity = parallel.unit().mul(SPIDER_SPEED).add(perpendicular.mul(SPIDER_LEGS_FLOOR_ELASTICITY));
+        }
+    };
+    // The player can kill the Spider by running through its legs
+    RocketSpiderLegs.prototype.reactToPlayer = function (player) {
+        this.weakSpot.moveTo(this.hitCircle.getCenter());
+        if (CollisionDetector.overlapShapePlayers(this.weakSpot).length === 0) {
+            this.setDead(true);
+        }
+    };
+    // The legs of the spider are responsible for killing the body
+    RocketSpiderLegs.prototype.setDead = function (isDead) {
+        this.body.setDead(isDead);
+        Entity.prototype.setDead.call(this, isDead);
+    };
+    RocketSpiderLegs.prototype.onDeath = function () {
+        gameState.incrementStat(STAT_ENEMY_DEATHS);
+        // make things that look like legs fly everywhere
+        var position = this.getCenter();
+        for (var i = 0; i < 16; ++i) {
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
+            direction = direction.mul(randInRange(0.5, 5));
+            var angle = randInRange(0, 2 * Math.PI);
+            var angularVelocity = randInRange(-Math.PI, Math.PI);
+            Particle.get().position(position).velocity(direction).radius(0.25).bounces(3).elasticity(0.5).decay(0.01).line().angle(angle).angularVelocity(angularVelocity).color(0, 0, 0, 1);
+        }
+    };
+    RocketSpiderLegs.prototype.draw = function (c) {
+    };
+    return RocketSpiderLegs;
+}(WalkingEnemy));
 var SHOCK_HAWK_RADIUS = 0.3;
 var SHOCK_HAWK_ACCEL = 6;
 var SHOCK_HAWK_DECEL = 0.8;
@@ -4012,25 +4495,99 @@ var Stalacbat = (function (_super) {
     };
     return Stalacbat;
 }(FreefallEnemy));
-///<reference path="./Enemy.ts" />
-//WalkingEnemy.subclasses(Enemy);
-var WalkingEnemy = (function (_super) {
-    __extends(WalkingEnemy, _super);
-    function WalkingEnemy(type, center, radius, elasticity) {
+///<reference path="./RotatingEnemy.ts" />
+var WALL_AVOIDER_RADIUS = 0.3;
+var WALL_AVOIDER_ACCEL = 3.3;
+//WallAvoider.subclasses(RotatingEnemy);
+var WallAvoider = (function (_super) {
+    __extends(WallAvoider, _super);
+    function WallAvoider(center, target) {
         var _this = 
-        // Enemy.prototype.constructor.call(this, type, elasticity);
-        _super.call(this, type, elasticity) || this;
-        _this.hitCircle = new Circle(center, radius);
+        // RotatingEnemy.prototype.constructor.call(this, ENEMY_WALL_AVOIDER, center, WALL_AVOIDER_RADIUS, 0, 0);
+        _super.call(this, ENEMY_WALL_AVOIDER, center, WALL_AVOIDER_RADIUS, 0, 0) || this;
+        _this.target = target;
+        _this.acceleration = new Vector(0, 0);
+        _this.angularVelocity = 0;
+        _this.bodySprite = new Sprite();
+        // this.target = target;
+        //this.acceleration = new Vector(0, 0);
+        //this.angularVelocity = 0;
+        //this.bodySprite = new Sprite();
+        _this.bodySprite.drawGeometry = function (c) {
+            c.beginPath();
+            c.arc(0, 0, 0.1, 0, 2 * Math.PI, false);
+            c.fill();
+            c.stroke();
+            c.beginPath();
+            for (var i = 0; i < 4; i++) {
+                var angle = i * (2 * Math.PI / 4);
+                var cos = Math.cos(angle), sin = Math.sin(angle);
+                c.moveTo(cos * 0.1, sin * 0.1);
+                c.lineTo(cos * 0.3, sin * 0.3);
+                c.moveTo(cos * 0.16 - sin * 0.1, sin * 0.16 + cos * 0.1);
+                c.lineTo(cos * 0.16 + sin * 0.1, sin * 0.16 - cos * 0.1);
+                c.moveTo(cos * 0.23 - sin * 0.05, sin * 0.23 + cos * 0.05);
+                c.lineTo(cos * 0.23 + sin * 0.05, sin * 0.23 - cos * 0.05);
+            }
+            c.stroke();
+        };
         return _this;
     }
-    WalkingEnemy.prototype.getShape = function () {
-        return this.hitCircle;
+    WallAvoider.prototype.move = function (seconds) {
+        if (this.target.isDead()) {
+            this.velocity.x = this.velocity.y = 0;
+            return this.velocity.mul(seconds);
+        }
+        else {
+            var targetDelta = this.target.getCenter().sub(this.getCenter());
+            var ref_shapePoint = {};
+            var ref_worldPoint = { ref: null };
+            var closestPointDist = CollisionDetector.closestToEntityWorld(this, 5, ref_shapePoint, ref_worldPoint, gameState.world);
+            // If something went horribly, horribly wrong
+            if (closestPointDist < 0.001) {
+                return this.accelerate(new Vector(0, 0), seconds);
+            }
+            this.acceleration = targetDelta.unit();
+            if (closestPointDist < Number.POSITIVE_INFINITY) {
+                var closestPointDelta = ref_worldPoint.ref.sub(this.getCenter());
+                var wallAvoidance = closestPointDelta.mul(-1 / (closestPointDist * closestPointDist));
+                this.acceleration.inplaceAdd(wallAvoidance);
+            }
+            this.acceleration.normalize();
+            this.acceleration.inplaceMul(WALL_AVOIDER_ACCEL);
+            // Time independent version of multiplying by 0.99
+            this.velocity.inplaceMul(Math.pow(0.366032, seconds));
+            return this.accelerate(this.acceleration, seconds);
+        }
     };
-    WalkingEnemy.prototype.move = function (seconds) {
-        return this.velocity.mul(seconds);
+    WallAvoider.prototype.reactToWorld = function (contact) {
+        this.setDead(true);
     };
-    return WalkingEnemy;
-}(Enemy));
+    WallAvoider.prototype.onDeath = function () {
+        gameState.incrementStat(STAT_ENEMY_DEATHS);
+        var position = this.getCenter();
+        // fire
+        for (var i = 0; i < 50; ++i) {
+            var direction = Vector.fromAngle(randInRange(0, 2 * Math.PI));
+            direction = direction.mul(randInRange(0.5, 17));
+            Particle.get().position(position).velocity(direction).radius(0.02, 0.15).bounces(0, 4).elasticity(0.05, 0.9).decay(0.000001, 0.00001).expand(1.0, 1.2).color(1, 0.3, 0, 1).mixColor(1, 0.1, 0, 1).triangle();
+        }
+    };
+    WallAvoider.prototype.getTarget = function () {
+        return this.target === gameState.getPlayerB();
+    };
+    WallAvoider.prototype.afterTick = function (seconds) {
+        this.bodySprite.offsetBeforeRotation = this.getCenter();
+        this.angularVelocity = (this.angularVelocity + randInRange(-Math.PI, Math.PI)) * 0.5;
+        this.bodySprite.angle += this.angularVelocity * seconds;
+    };
+    WallAvoider.prototype.draw = function (c) {
+        c.fillStyle = (this.target == gameState.playerA) ? 'red' : 'blue';
+        c.strokeStyle = 'black';
+        this.bodySprite.draw(c);
+    };
+    return WallAvoider;
+}(RotatingEnemy));
 ///<reference path="./WalkingEnemy.ts" />
 var WALL_CRAWLER_SPEED = 1;
 var WALL_CRAWLER_RADIUS = 0.25;
@@ -4409,15 +4966,10 @@ var SplitScreenCamera = (function () {
 }());
 var Camera = SplitScreenCamera;
 // abstract class Screen
-var Screen = (function () {
-    function Screen() {
+var _Screen = (function () {
+    function _Screen() {
     }
-    Screen.prototype.tick = function (seconds) { };
-    Screen.prototype.draw = function (c) { };
-    Screen.prototype.resize = function (w, h) { };
-    Screen.prototype.keyDown = function (key) { };
-    Screen.prototype.keyUp = function (key) { };
-    return Screen;
+    return _Screen;
 }());
 ///<reference path="./screen.ts" />
 ///<reference path="../entities/particle.ts" />
@@ -4612,7 +5164,7 @@ var Game = (function (_super) {
         }
     };
     return Game;
-}(Screen));
+}(_Screen));
 function toTitleCase(s) {
     return s.toLowerCase().replace(/^(.)|\s(.)/g, function ($1) { return $1.toUpperCase(); });
 }
@@ -4874,7 +5426,7 @@ var Level = (function () {
     }
     Level.prototype.tick = function () {
         var currentTime = new Date();
-        var seconds = (currentTime - this.lastTime) / 1000;
+        var seconds = (currentTime.getTime() - this.lastTime) / 1000;
         this.lastTime = currentTime;
         // Retina support
         var ratio = globalScaleFactor();
@@ -4968,49 +5520,57 @@ var Level = (function () {
 ////////////////////////////////////////////////////////////////////////////////
 // class Hash
 ////////////////////////////////////////////////////////////////////////////////
-function Hash() {
-    this.username = null;
-    this.levelname = null;
-    this.hash = null;
-    this.prevHash = null;
-}
-Hash.prototype.hasChanged = function () {
-    if (this.hash != location.hash) {
-        this.prevHash = this.hash;
-        this.hash = location.hash;
-        var levelMatches = /^#\/?([^\/]+)\/([^\/]+)\/?$/.exec(this.hash);
-        var userMatches = /^#\/?([^\/]+)\/?$/.exec(this.hash);
-        if (levelMatches != null) {
-            this.username = levelMatches[1];
-            this.levelname = levelMatches[2];
+var Hash = (function () {
+    function Hash() {
+        this.username = null;
+        this.levelname = null;
+        this.hash = null;
+        this.prevHash = null;
+        //this.username = null;
+        //this.levelname = null;
+        //this.hash = null;
+        //this.prevHash = null;
+    }
+    Hash.prototype.hasChanged = function () {
+        if (this.hash != location.hash) {
+            this.prevHash = this.hash;
+            this.hash = location.hash;
+            var levelMatches = /^#\/?([^\/]+)\/([^\/]+)\/?$/.exec(this.hash);
+            var userMatches = /^#\/?([^\/]+)\/?$/.exec(this.hash);
+            if (levelMatches != null) {
+                this.username = levelMatches[1];
+                this.levelname = levelMatches[2];
+            }
+            else if (userMatches != null) {
+                this.username = userMatches[1];
+                this.levelname = null;
+            }
+            else {
+                this.username = null;
+                this.levelname = null;
+            }
+            return true;
         }
-        else if (userMatches != null) {
-            this.username = userMatches[1];
-            this.levelname = null;
+        return false;
+    };
+    Hash.prototype.setHash = function (username, levelname) {
+        var newHash = '#/' + username + '/' + (levelname ? levelname + '/' : '');
+        if (this.prevHash === newHash) {
+            // if we were on page A, we are now on page B, and we want to go back to page A, use the browser's back button instead
+            // this is so a game session doesn't add tons of level => menu => level => menu stuff to the history
+            history.back();
         }
         else {
-            this.username = null;
-            this.levelname = null;
+            this.username = username;
+            this.levelname = levelname;
+            location.hash = newHash;
         }
-        return true;
-    }
-    return false;
-};
-Hash.prototype.setHash = function (username, levelname) {
-    var newHash = '#/' + username + '/' + (levelname ? levelname + '/' : '');
-    if (this.prevHash === newHash) {
-        // if we were on page A, we are now on page B, and we want to go back to page A, use the browser's back button instead
-        // this is so a game session doesn't add tons of level => menu => level => menu stuff to the history
-        history.back();
-    }
-    else {
-        this.username = username;
-        this.levelname = levelname;
-        location.hash = newHash;
-    }
-};
-Hash.getMenuHash = function (username) { return '#/' + username + '/'; };
-Hash.getLevelHash = function (username, levelname) { return '#/' + username + '/' + levelname + '/'; };
+    };
+    Hash.getMenuHash = function (username) { return '#/' + username + '/'; };
+    ;
+    Hash.getLevelHash = function (username, levelname) { return '#/' + username + '/' + levelname + '/'; };
+    return Hash;
+}());
 ////////////////////////////////////////////////////////////////////////////////
 // module Main
 ////////////////////////////////////////////////////////////////////////////////
@@ -5544,7 +6104,7 @@ function randInRange(a, b) {
 // class Sprite
 var Sprite = (function () {
     function Sprite() {
-        this.flip = 0;
+        this.flip = false; // 0;
         this.angle = 0;
         this.offsetBeforeRotation = new Vector(0, 0);
         this.offsetAfterRotation = new Vector(0, 0);
@@ -5971,6 +6531,9 @@ var GameState = (function () {
     };
     GameState.prototype.getPlayer = function (i) {
         return (i == 0) ? this.playerA : this.playerB;
+    };
+    GameState.prototype.getPlayerB = function () {
+        return this.playerB;
     };
     GameState.prototype.getOtherPlayer = function (player) {
         return (player == this.playerA) ? this.playerB : this.playerA;

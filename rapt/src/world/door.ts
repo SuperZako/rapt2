@@ -4,14 +4,14 @@ var ONE_WAY = 0;
 var TWO_WAY = 1;
 
 class Door {
-    cells;
-    edges;
-    constructor(edge0, edge1, cell0, cell1) {
+    cells: Cell[];
+    edges: Edge[];
+    constructor(edge0: Edge, edge1: Edge, cell0: Cell, cell1: Cell) {
         this.cells = [cell0, cell1];
         this.edges = [edge0, edge1];
     }
 
-    doorExists(i) {
+    doorExists(i: number) {
         if (this.edges[i] === null) {
             return false;
         }

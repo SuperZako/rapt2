@@ -11,7 +11,7 @@ var useBackgroundCache = true;
 // but the polygon isn't clipped to the canvas before being bounded.  Before this,
 // we were just drawing a huge polygon 99999 units across and not bothering to tightly
 // wrap the canvas, but Firefox was crashing.
-function clipHelper(c, w, h, split) {
+function clipHelper(c: CanvasRenderingContext2D, w: number, h: number, split) {
     var tx = h / split.y;
     var ty = w / split.x;
     c.beginPath();
@@ -29,8 +29,8 @@ function clipHelper(c, w, h, split) {
 
 // class SplitScreenCamera
 class SplitScreenCamera {
-    backgroundCacheA;
-    backgroundCacheB;
+    backgroundCacheA: BackgroundCache;
+    backgroundCacheB: BackgroundCache;
     constructor(public playerA?, public playerB?, public width?, public height?) {
         //this.playerA = playerA;
         //this.playerB = playerB;
@@ -48,7 +48,7 @@ class SplitScreenCamera {
 
 
 
-    draw(c, renderer) {
+    draw(c, renderer:Game) {
         var positionA = this.playerA.getCenter();
         var positionB = this.playerB.getCenter();
         var center = positionA.add(positionB).div(2);

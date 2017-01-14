@@ -16,7 +16,7 @@ class Grenade extends FreefallEnemy {
         this.timeUntilExplodes = GRENADE_LIFETIME;
     }
 
-    draw(c) {
+    draw(c: CanvasRenderingContext2D) {
         var position = this.getShape().getCenter();
         var percentUntilExplodes = this.timeUntilExplodes / GRENADE_LIFETIME;
 

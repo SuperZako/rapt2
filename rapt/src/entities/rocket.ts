@@ -29,15 +29,15 @@ function drawRocket(c) {
 // Rocket.subclasses(RotatingEnemy);
 
 class Rocket extends RotatingEnemy {
-    target;
     maxRotation;
     timeUntilFree;
     timeUntilNextParticle;
     sprites = [new Sprite(), new Sprite];
-    constructor(center, target, heading, maxRotation, type) {
+
+    constructor(center, public target, heading, maxRotation?, type?) {
         //RotatingEnemy.prototype.constructor.call(this, type, center, ROCKET_RADIUS, heading, ROCKET_ELASTICITY);
         super(type, center, ROCKET_RADIUS, heading, ROCKET_ELASTICITY);
-        this.target = target;
+        // this.target = target;
         this.maxRotation = maxRotation;
         this.timeUntilFree = ROCKET_HEADING_CONSTRAINT_TIME;
         this.timeUntilNextParticle = 0;
@@ -75,7 +75,7 @@ class Rocket extends RotatingEnemy {
         return this.velocity.mul(seconds);
     }
 
-    afterTick(seconds) {
+    afterTick(seconds: number) {
         var position = this.getCenter();
         this.sprites[ROCKET_SPRITE_RED].offsetBeforeRotation = position;
         this.sprites[ROCKET_SPRITE_BLUE].offsetBeforeRotation = position;

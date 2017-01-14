@@ -17,11 +17,11 @@ var PARTICLE_TRIANGLE = 1;
 var PARTICLE_LINE = 2;
 var PARTICLE_CUSTOM = 3;
 
-function randOrTakeFirst(min, max) {
+function randOrTakeFirst(min: number, max?: number) {
     return (typeof max !== 'undefined') ? randInRange(min, max) : min;
 }
 
-function cssRGBA(r, g, b, a) {
+function cssRGBA(r: number, g: number, b: number, a: number) {
     return 'rgba(' + Math.round(r * 255) + ', ' + Math.round(g * 255) + ', ' + Math.round(b * 255) + ', ' + a + ')';
 }
 
@@ -126,19 +126,26 @@ class ParticleInstance {
     }
 
     // all of these functions support chaining to fix constructor with 200 arguments
-    bounces(min, max) { this.m_bounces = Math.round(randOrTakeFirst(min, max)); return this; };
+    bounces(min: number, max?: number) {
+        this.m_bounces = Math.round(randOrTakeFirst(min, max));
+        return this;
+    }
     circle() { this.m_type = PARTICLE_CIRCLE; return this; };
     triangle() { this.m_type = PARTICLE_TRIANGLE; return this; };
     line() { this.m_type = PARTICLE_LINE; return this; };
-    custom(drawFunc) { this.m_type = PARTICLE_CUSTOM; this.m_drawFunc = drawFunc; return this; };
-    color(r, g, b, a) {
+    custom(drawFunc) {
+        this.m_type = PARTICLE_CUSTOM;
+        this.m_drawFunc = drawFunc;
+        return this;
+    }
+    color(r: number, g: number, b: number, a: number) {
         this.m_red = r;
         this.m_green = g;
         this.m_blue = b;
         this.m_alpha = a;
         return this;
     }
-    mixColor(r, g, b, a) {
+    mixColor(r: number, g: number, b: number, a: number) {
         var percent = Math.random();
         this.m_red = lerp(this.m_red, r, percent);
         this.m_green = lerp(this.m_green, g, percent);
@@ -146,21 +153,39 @@ class ParticleInstance {
         this.m_alpha = lerp(this.m_alpha, a, percent);
         return this;
     }
-    radius(min, max) { this.m_radius = randOrTakeFirst(min, max); return this; };
-    gravity(min, max) { this.m_gravity = randOrTakeFirst(min, max); return this; };
-    elasticity(min, max) { this.m_elasticity = randOrTakeFirst(min, max); return this; };
-    decay(min, max) { this.m_decay = randOrTakeFirst(min, max); return this; };
-    expand(min, max) { this.m_expand = randOrTakeFirst(min, max); return this; };
-    angle(min, max) { this.m_angle = randOrTakeFirst(min, max); return this; };
-    angularVelocity(min, max) { this.m_angularVelocity = randOrTakeFirst(min, max); return this; };
-    position(position) { this.m_position = position; return this; };
-    velocity(velocity) { this.m_velocity = velocity; return this; };
+    radius(min: number, max?: number) {
+        this.m_radius = randOrTakeFirst(min, max);
+        return this;
+    }
+    gravity(min: number, max?: number) {
+        this.m_gravity = randOrTakeFirst(min, max);
+        return this;
+    }
+    elasticity(min: number, max?: number) {
+        this.m_elasticity = randOrTakeFirst(min, max);
+        return this;
+    }
+    decay(min: number, max?: number) {
+        this.m_decay = randOrTakeFirst(min, max);
+        return this;
+    }
+    expand(min: number, max: number) { this.m_expand = randOrTakeFirst(min, max); return this; };
+    angle(min: number, max?: number) {
+        this.m_angle = randOrTakeFirst(min, max);
+        return this;
+    }
+    angularVelocity(min: number, max?: number) {
+        this.m_angularVelocity = randOrTakeFirst(min, max);
+        return this;
+    };
+    position(position: Vector) { this.m_position = position; return this; };
+    velocity(velocity: Vector) { this.m_velocity = velocity; return this; };
 }
 
 // wrap in anonymous function for private variables
 namespace Particle {
     // particles is an array of ParticleInstances where the first count are in use
-    var particles = new Array(3000);
+    var particles = new Array<ParticleInstance>(3000);
     var maxCount = particles.length;
     var count = 0;
 
@@ -179,7 +204,7 @@ namespace Particle {
         count = 0;
     }
 
-    export function tick(seconds) {
+    export function tick(seconds: number) {
         for (var i = 0; i < count; i++) {
             var isAlive = particles[i].tick(seconds);
             if (!isAlive) {

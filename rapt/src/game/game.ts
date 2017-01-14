@@ -55,7 +55,7 @@ function drawTextBox(c, textArray, xCenter, yCenter, textSize) {
 
 // class Game extends Screen
 
-class Game extends Screen {
+class Game extends _Screen {
     camera = new Camera();
     fps = 0;
     fixedPhysicsTick = 0;

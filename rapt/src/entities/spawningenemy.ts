@@ -3,7 +3,7 @@
 class SpawningEnemy extends Enemy {
     spawnFrequency;
     timeUntilNextSpawn;
-    hitBox;
+    hitBox: AABB;
     constructor(type, center, width, height, elasticity, frequency, startingTime) {
         // Enemy.prototype.constructor.call(this, type, elasticity);
         super(type, elasticity);

@@ -4,8 +4,8 @@ var FREEFALL_ACCEL = -6;
 
 //FreefallEnemy.subclasses(Enemy);
 class FreefallEnemy extends Enemy {
-    hitCircle;
-    constructor(type, center, radius, elasticity) {
+    hitCircle: Circle;
+    constructor(type, center, radius: number, elasticity) {
         //Enemy.prototype.constructor.call(this, type, elasticity);
         super(type, elasticity);
         this.hitCircle = new Circle(center, radius);
@@ -15,7 +15,7 @@ class FreefallEnemy extends Enemy {
         return this.hitCircle;
     }
 
-    draw(c) {
+    draw(c: CanvasRenderingContext2D) {
         var pos = this.hitCircle.center;
         c.fillStyle = 'black';
         c.beginPath();
@@ -24,7 +24,7 @@ class FreefallEnemy extends Enemy {
     }
 
     // This moves the enemy and constrains its position
-    move(seconds) {
+    move(seconds: number) {
         return this.accelerate(new Vector(0, FREEFALL_ACCEL), seconds);
     }
 

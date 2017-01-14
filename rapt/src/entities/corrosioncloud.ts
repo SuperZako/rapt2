@@ -50,7 +50,7 @@ class CorrosionCloud extends RotatingEnemy {
         var isBlue = (this.target === gameState.playerB) ? 0.3 : 0;
 
         this.smoothedVelocity = this.smoothedVelocity.mul(0.95).add(this.velocity.mul(0.05));
-        Particle.get().position(center).velocity(this.smoothedVelocity.sub(new Vector(0.1, 0.1)), this.smoothedVelocity.add(new Vector(0.1, 0.1))).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).expand(1, 1.2).color(0.2 + isRed, 0.2, 0.2 + isBlue, 1).mixColor(0.1 + isRed, 0.1, 0.1 + isBlue, 1).circle().gravity(-0.4, 0);
+        Particle.get().position(center).velocity(this.smoothedVelocity.sub(new Vector(0.1, 0.1))/*, this.smoothedVelocity.add(new Vector(0.1, 0.1))*/).radius(0.01, 0.1).bounces(0, 4).elasticity(0.05, 0.9).decay(0.01, 0.5).expand(1, 1.2).color(0.2 + isRed, 0.2, 0.2 + isBlue, 1).mixColor(0.1 + isRed, 0.1, 0.1 + isBlue, 1).circle().gravity(-0.4, 0);
     }
 
     getTarget() {

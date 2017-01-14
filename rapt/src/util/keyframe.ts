@@ -2,9 +2,9 @@
 
 // class Keyframe
 class Keyframe {
-    center;
-    angles = [];
-    constructor(x, y) {
+    center: Vector;
+    angles: number[] = [];
+    constructor(x?: number, y?: number) {
         this.center = new Vector(x, y);
         // this.angles = [];
     }
@@ -19,7 +19,7 @@ class Keyframe {
         return this;
     }
 
-    lerpWith(keyframe, percent) {
+    lerpWith(keyframe: Keyframe, percent: number) {
         var result = new Keyframe(
             lerp(this.center.x, keyframe.center.x, percent),
             lerp(this.center.y, keyframe.center.y, percent)

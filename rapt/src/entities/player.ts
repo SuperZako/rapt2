@@ -39,8 +39,7 @@ var jumpingKeyframes = [
     new Keyframe(0, 0).add([0, -10, 150, -170, -40, 30, -30, -20, 20, 150]),
     new Keyframe(0, 0).add([-20, 10, 60, -100, -80, 30, 30, -20, 30, 30])
 ];
-var wallSlidingKeyframe =
-    new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add([0, -10, 150, -130, 140, 50, 50, -30, 50, 130]);
+var wallSlidingKeyframe = new Keyframe((0.4 - PLAYER_WIDTH) / 2, 0).add([0, -10, 150, -130, 140, 50, 50, -30, 50, 130]);
 var crouchingKeyframe =
     new Keyframe(0, -0.2).add([30, -30, 130, -110, -30, 40, 60, -120, 20, 20]);
 var fallingKeyframes = [
@@ -130,11 +129,11 @@ class Player extends Entity {
     // Player.subclasses(Entity);
 
     // class Player extends Entity
-    jumpKey;
-    crouchKey;
-    leftKey;
-    rightKey;
-    polygon;
+    jumpKey = false;
+    crouchKey = false;
+    leftKey = false;
+    rightKey = false;
+    polygon: Polygon;
 
     actualVelocity;
     boost;
@@ -157,7 +156,7 @@ class Player extends Entity {
     isSuperJumping;
     color;
 
-    constructor(center, color) {
+    constructor(center: Vector, color) {
         //Entity.prototype.constructor.call(this);
         super();
         this.reset(center, color);
@@ -215,7 +214,7 @@ class Player extends Entity {
 
     // returns 0 for red player and 1 for blue player
     getPlayerIndex() {
-        return (this == gameState.playerB);
+        return (this === gameState.playerB);
     }
 
     getCrouch() {
@@ -378,10 +377,15 @@ class Player extends Entity {
             }
         }
 
-        if (edgeQuad.edges[EDGE_FLOOR]) this.state = PLAYER_STATE_FLOOR;
-        else if (edgeQuad.edges[EDGE_LEFT]) this.state = PLAYER_STATE_LEFT_WALL;
-        else if (edgeQuad.edges[EDGE_RIGHT]) this.state = PLAYER_STATE_RIGHT_WALL;
-        else this.state = PLAYER_STATE_AIR;
+        if (edgeQuad.edges[EDGE_FLOOR]) {
+            this.state = PLAYER_STATE_FLOOR;
+        } else if (edgeQuad.edges[EDGE_LEFT]) {
+            this.state = PLAYER_STATE_LEFT_WALL;
+        } else if (edgeQuad.edges[EDGE_RIGHT]) {
+            this.state = PLAYER_STATE_RIGHT_WALL;
+        } else {
+            this.state = PLAYER_STATE_AIR;
+        }
 
         var ref_closestPointWorld = { ref: null }, ref_closestPointShape = { ref: null };
         var closestPointDistance = CollisionDetector.closestToEntityWorld(this, 0.1, ref_closestPointShape, ref_closestPointWorld, gameState.world);
@@ -530,8 +534,8 @@ class Player extends Entity {
         }
     }
 
-    tickAnimation(seconds) {
-        var frame;
+    tickAnimation(seconds: number) {
+        var frame: Keyframe;
         var slowDownScale = 1;
 
         this.runningFrame += seconds * Math.abs(this.actualVelocity.x) * Math.PI;
@@ -570,11 +574,18 @@ class Player extends Entity {
             frame = crouchingKeyframe;
         } else {
             frame = Keyframe.lerp(runningKeyframes, this.runningFrame);
-            if (this.actualVelocity.x < -0.1) this.facingRight = false;
-            else if (this.actualVelocity.x > 0.1) this.facingRight = true;
+            if (this.actualVelocity.x < -0.1) {
+                this.facingRight = false;
+            } else {
+                if (this.actualVelocity.x > 0.1) {
+                    this.facingRight = true;
+                }
+            }
 
             slowDownScale = Math.abs(this.actualVelocity.x) / 5;
-            if (slowDownScale > 1) slowDownScale = 1;
+            if (slowDownScale > 1) {
+                slowDownScale = 1;
+            }
         }
 
         for (var i = 0; i < this.sprites.length; i++) {
@@ -586,7 +597,7 @@ class Player extends Entity {
         this.sprites[PLAYER_TORSO].flip = !this.facingRight;
     }
 
-    draw(c) {
+    draw(c: CanvasRenderingContext2D) {
         if (!this.isDead()) {
             if (this.isSuperJumping) {
                 var alpha = Math.max(0, this.velocity.y / PLAYER_SUPER_JUMP_SPEED);
@@ -596,7 +607,7 @@ class Player extends Entity {
                 c.lineWidth /= 3;
             }
 
-            c.fillStyle = (this.getPlayerIndex() == 0) ? 'red' : 'blue';
+            c.fillStyle = (this.getPlayerIndex() === false) ? 'red' : 'blue';
             c.strokeStyle = 'black';
             this.sprites[PLAYER_TORSO].draw(c);
         }

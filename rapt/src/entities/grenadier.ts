@@ -42,7 +42,7 @@ class Grenadier extends SpawningEnemy {
     }
 
     getTarget() {
-        return this.target === gameState.GetPlayerB();
+        return this.target === gameState.getPlayerB();
     }
 
     setTarget(player) {

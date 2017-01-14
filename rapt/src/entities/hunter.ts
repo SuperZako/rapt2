@@ -49,6 +49,7 @@ class Hunter extends RotatingEnemy {
         this.sprites[HUNTER_CLAW1].setParent(this.sprites[HUNTER_BODY]);
         this.sprites[HUNTER_CLAW2].setParent(this.sprites[HUNTER_BODY]);
         this.sprites[HUNTER_CLAW2].flip = true;
+        // this.sprites[HUNTER_CLAW2].flip = 1;
         this.sprites[HUNTER_BODY].offsetAfterRotation = new Vector(0, -0.2);
     }
 
@@ -61,7 +62,8 @@ class Hunter extends RotatingEnemy {
     playerInSight(target, distanceSquared) {
         if (target.isDead()) return false;
         var inSight = distanceSquared < (HUNTER_CHASE_RANGE * HUNTER_CHASE_RANGE);
-        inSight &= !CollisionDetector.lineOfSightWorld(this.getCenter(), target.getCenter(), gameState.world);
+        //inSight &= !CollisionDetector.lineOfSightWorld(this.getCenter(), target.getCenter(), gameState.world);
+        inSight = inSight && !CollisionDetector.lineOfSightWorld(this.getCenter(), target.getCenter(), gameState.world);
         return inSight;
     }
 

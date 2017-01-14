@@ -1,8 +1,8 @@
 // class Segment
 
 class Segment {
-    normal;
-    constructor(public start, public end) {
+    normal: Vector;
+    constructor(public start: Vector, public end: Vector) {
         // this.start = start;
         // this.end = end;
         this.normal = end.sub(start).flip().unit();

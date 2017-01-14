@@ -6,8 +6,8 @@ var MULTI_GUN_RANGE = 8;
 
 // MultiGun.subclasses(SpawningEnemy);
 class MultiGun extends SpawningEnemy {
-    redGun = null;
-    blueGun = null;
+    redGun: Vector;// = null;
+    blueGun: Vector;// = null;
     gunFired = new Array(4);
     gunPositions = new Array(4);
     constructor(center) {
@@ -31,7 +31,7 @@ class MultiGun extends SpawningEnemy {
         return false;
     }
 
-    vectorToIndex(v) {
+    vectorToIndex(v: Vector) {
         var indexX = (v.x < 0) ? 0 : 1;
         var indexY = (v.y < 0) ? 0 : 2;
         return indexX + indexY;

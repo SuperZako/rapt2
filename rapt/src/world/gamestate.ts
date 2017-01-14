@@ -13,7 +13,7 @@ var STAT_COGS_COLLECTED = 2;
 var STAT_NUM_COGS = 3;
 
 // global variable for game state, initialized in main.js
-var gameState;
+var gameState: GameState;
 
 // bounding rectangle around all pixels currently being drawn to (also includes 2 cells of padding,
 // so just check that the enemy center is within these bounds, don't bother about adding the radius)
@@ -115,6 +115,10 @@ class GameState {
 
     getPlayer(i) {
         return (i == 0) ? this.playerA : this.playerB;
+    }
+
+    getPlayerB() {
+        return this.playerB;
     }
 
     getOtherPlayer(player) {

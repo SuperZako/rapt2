@@ -17,9 +17,9 @@ function IS_SOLID_YPOS(type) { return type == CELL_SOLID || type == CELL_CEIL_DI
 
 // class World
 class World {
-    cells;
-    width;
-    height;
+    cells: Cell[][];
+    width: number;
+    height: number;
     safety;
     spawnPoint;
     goal;
@@ -150,7 +150,7 @@ class World {
         return edges;
     }
 
-    getCellsInAabb(aabb) {
+    getCellsInAabb(aabb: AABB) {
         var xmin = Math.max(0, Math.floor(aabb.getLeft()));
         var ymin = Math.max(0, Math.floor(aabb.getBottom()));
         var xmax = Math.min(this.width, Math.ceil(aabb.getRight()));

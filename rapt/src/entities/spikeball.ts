@@ -23,9 +23,9 @@ function makeDrawSpikes(count) {
 // SpikeBall.subclasses(Enemy);
 class SpikeBall extends Enemy {
     // A boring old spike ball
-    hitCircle;
+    hitCircle: Circle;
     sprites = [new Sprite(), new Sprite(), new Sprite()];
-    constructor(center) {
+    constructor(center: Vector) {
         //Enemy.prototype.constructor.call(this, ENEMY_SPIKE_BALL, 0);
         super(ENEMY_SPIKE_BALL, 0);
         this.hitCircle = new Circle(center, SPIKE_BALL_RADIUS);

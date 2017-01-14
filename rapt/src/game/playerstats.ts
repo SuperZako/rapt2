@@ -43,7 +43,7 @@ class PlayerStats {
         };
     }
 
-    setStatsForLevel(username, levelname, complete, gotAllCogs) {
+    setStatsForLevel(username: string, levelname, complete, gotAllCogs) {
         // remove all existing stats for this level
         for (var i = 0; i < this.stats.length; i++) {
             var stat = this.stats[i];
